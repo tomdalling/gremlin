@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Tom Dalling']
   spec.email         = ['tom' + '@' + 'tomdalling.com']
 
-  spec.summary       = %q{For making games with pixi.js and Opal}
+  spec.summary       = %q{Trying to get Opal + web game dev to play together nicely}
   spec.homepage      = 'https://github.com/tomdalling/gremlin'
   spec.license       = 'MIT'
 
