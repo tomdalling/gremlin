@@ -8,8 +8,8 @@ performant manner. Development state: super experimental.
 
 ```sh
 bundle install
-bundle exec rake build_game
-rake server
+bundle exec rake build_example
+bundle exec rake serve_example
 open http://localhost:8000/
 ```
 

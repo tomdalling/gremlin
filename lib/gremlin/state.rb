@@ -10,41 +10,61 @@ module Gremlin
       {}
     end
 
+    def key_down
+    end
+
     private
+
+      def init
+        `#{self}.input.keyboard.addCallbacks(#{self}, #{self}['$_handle_key_down'])`
+      end
+
+      def _handle_key_down(event)
+        key_down(`event.keyCode`)
+      end
 
       def preload
         assets.fetch(:images, {}).each do |key, url|
-          `#{@load}.image(#{key}, #{url})`
+          `#{self}.load.image(#{key}, #{url})`
+        end
+
+        assets.fetch(:text, {}).each do |key, url|
+          `#{self}.load.text(#{key}, #{url})`
         end
       end
 
       def add_sprite(key)
-        `#{@add}.sprite(0, 0, #{key})`
+        `#{self}.add.sprite(0, 0, #{key})`
       end
 
       def add_text(text, style={})
-        `#{@add}.text(0, 0, #{text}, #{style.to_n})`
+        `#{self}.add.text(0, 0, #{text}, #{style.to_n})`
+      end
+
+      # TODO: better name
+      def get_text(key)
+        `#{self}.cache.getText(#{key})`
       end
 
       def key_down?(key)
-        result = `!!#{@input}.keyboard.isDown(#{key})`
+        result = `!!#{self}.input.keyboard.isDown(#{key})`
         result
       end
 
       def game_size
-        Point[`#{@game}.width`, `#{@game}.height`]
+        Point[`#{self}.game.width`, `#{self}.game.height`]
       end
 
       def delta_time
-        `#{@time}.physicsElapsed`
+        `#{self}.time.physicsElapsed`
       end
 
       def average_fps
-        `#{@time}.fps`
+        `#{self}.time.fps`
       end
 
       def enabled_advanced_timing!
-        `#{@time}.advancedTiming = true`
+        `#{self}.time.advancedTiming = true`
       end
 
       PATCHED_METHODS = {
