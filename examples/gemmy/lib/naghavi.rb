@@ -60,7 +60,7 @@ module Naghavi
       end
 
       def transition_to_scene(scene)
-        while scene && scene != @scene && scene.is_a?(Scene)
+        while scene && !native?(scene) && scene.is_a?(Scene)
           if @scene
             @scene.window = nil
             @scene.shutdown

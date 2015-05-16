@@ -24,10 +24,10 @@
 # and, you'll have to watch "config/Guardfile" instead of "Guardfile"
 
 guard 'livereload' do
-  watch(%r{examples/.+\.(js|html)})
+  watch(%r{examples/gemmy/.+\.(js|html)})
 end
 
-guard 'rake', :task => 'gemmy_build' do
+guard 'rake', task: 'build_example', task_args: ['gemmy'] do
   watch(%r{^examples/gemmy/.+\.rb})
   watch(%r{^lib/.+\.rb})
 end

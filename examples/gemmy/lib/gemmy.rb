@@ -47,6 +47,7 @@ Animation = Naghavi::DefStruct.new {{
 
 Entity = Naghavi::DefStruct.new {{
   sprite: nil,
+  sort_order: 0,
   pos: [0, 0],
   pos_fraction: [0, 0],
   ai: nil,
@@ -78,6 +79,7 @@ GameState = Naghavi::DefStruct.new {{
   player: nil,
   goal: nil,
   entities: [],
+  spawned_entities: [],
   movement_sets: [],
 }}
 
@@ -167,7 +169,7 @@ class ShooterAi
 
   def think(shooter, game)
     @projectile = nil if @projectile && !@projectile.alive
-    return AiResults.new if @projectile
+    return nil if @projectile
 
     p = game.player.pos
     s = shooter.pos
@@ -215,18 +217,18 @@ class ProjectileAi
 end
 
 class LevelScene < Naghavi::Scene
+  ENTITY_SORT_ORDER = [:dirtball, :enemy, :player]
+
   def initialize(level_number)
     @level_number = level_number
   end
 
+  def so(type)
+    ENTITY_SORT_ORDER.index(type) || ENTITY_SORT_ORDER.size
+  end
+
   def startup
-=begin
-    # TODO: implement this
-    if !Gremlin::Song.current_song
-      @@song = Gremlin::Song.new(w, 'assets/audio/music.mp3')
-      @@song.play(true)
-    end
-=end
+    @@song = w.play_sound(:music, true) unless @@song
 
     #TODO: show final "winner" screen when no more levels available
     # just loops back to level 1 at the moment
@@ -238,22 +240,22 @@ class LevelScene < Naghavi::Scene
     @game.level.each_cell do |pos, cell|
       case cell.type
       when :player
-        @game.player = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :player))
+        @game.player = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :player), sort_order: so(:player))
         cell.type = :floor
       when :enemy
-        @game.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(image_key: :chaser))
+        @game.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(image_key: :chaser), sort_order: so(:enemy))
         cell.type = :floor
       when :shooter
-        @game.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(image_key: :shooter))
+        @game.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(image_key: :shooter), sort_order: so(:enemy))
         cell.type = :floor
       when :goal
-        @game.goal = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :goal, secs_per_frame: 0.2))
+        @game.goal = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :goal, secs_per_frame: 0.2), sort_order: so(:goal))
         cell.type = :floor
       when :dirtball
-        @game.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :dirtball), pushable: true)
+        @game.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :dirtball), pushable: true, sort_order: so(:dirtball))
         cell.type = :floor
       when :teleporter
-        @game.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :teleporter), teleport_pair: 1, deadly: false)
+        @game.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :teleporter), teleport_pair: 1, deadly: false, sort_order: so(:teleporter))
         cell.type = :floor
       end
     end
@@ -268,19 +270,28 @@ class LevelScene < Naghavi::Scene
       cell.sprite.pivot.set!(cell.sprite.width / 2, cell.sprite.height / 2)
       cell.sprite.scale.set!(GRID_SIZE/cell.sprite.width, GRID_SIZE/cell.sprite.height)
       cell.sprite.rotation = ORIENTATION_ROTATIONS.fetch(cell.orientation)
+      `#{cell.sprite}.smoothed = false`
     end
 
-    (@game.entities + [@game.player, @game.goal]).each do |e|
+    all_entities = @game.entities + [@game.player, @game.goal]
+
+    all_entities.each do |e|
       e.sprite = w.add_sprite(e.animation.image_key + e.animation.current_frame.to_s)
       e.sprite.position.set!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
       e.sprite.pivot.set!(e.sprite.width/2, e.sprite.height/2)
       e.sprite.scale.set!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
+      `#{e.sprite}.smoothed = false`
     end
+
+    all_entities
+      .sort_by(&:sort_order)
+      .reverse
+      .each{ |e| e.sprite.bring_to_top }
 
     @level_number_text = w.add_text("Level #@level_number", fill: 'white')
     @level_number_text.position.set!(15, 15)
-    
-    play_sound('start.wav')
+
+    w.play_sound(:start)
   end
 
   def button_down(button)
@@ -308,11 +319,19 @@ class LevelScene < Naghavi::Scene
     did_move = try_move(@game.player, dx, dy, move_set)
     @game.player.just_teleported = false if did_move
 
-    @game.entities.each do |enemy|
-      if enemy.ai
-        ai_results = enemy.ai.think(enemy, @game)
-        apply_ai(enemy, ai_results, move_set)
+    entities = @game.entities
+    while entities.size > 0
+      entities.each do |enemy|
+        if enemy.ai
+          ai_results = enemy.ai.think(enemy, @game)
+          apply_ai(enemy, ai_results, move_set) if ai_results
+        end
       end
+
+      # repeat for newly spawned entities, adding them back into @game.entities
+      @game.entities.concat(@game.spawned_entities)
+      entities = @game.spawned_entities
+      @game.spawned_entities = []
     end
 
     @game.movement_sets << move_set if move_set.movements.size > 0
@@ -327,7 +346,7 @@ class LevelScene < Naghavi::Scene
       entity.sprite.position.set!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
       entity.sprite.pivot.set!(entity.sprite.width/2, entity.sprite.height/2)
       entity.sprite.scale.set!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
-      @game.entities << entity
+      @game.spawned_entities << entity
     end
     ai_results.kills.each do |entity|
       entity.alive = false
@@ -376,10 +395,10 @@ class LevelScene < Naghavi::Scene
     return if did_move #no updating while moving
 
     if @game.player.pos == @game.goal.pos
-      play_sound('win.wav')
+      w.play_sound(:win)
       return EndLevelScene.new('You win!', Naghavi::Color::YELLOW, 'continue to next level', next_level)
     elsif @game.entities.any? { |e| e.deadly && e.pos == @game.player.pos }
-      play_sound('lose.wav')
+      w.play_sound(:lose)
       return EndLevelScene.new('You lose', Naghavi::Color::RED, 'try again', @level_number)
     end
 
@@ -419,7 +438,7 @@ class LevelScene < Naghavi::Scene
   def update_next_movement
     move_set = @game.movement_sets.first
     if move_set
-      play_sound('move.wav') if move_set.progress <= 0.0
+      w.play_sound(:move) if move_set.progress <= 0.0
 
       move_set.progress += (w.delta_time / MOVE_INTERVAL)
       move_set.movements.each do |m|
@@ -451,11 +470,6 @@ class LevelScene < Naghavi::Scene
                 pos.x, pos.y + GRID_SIZE, color,
                 0)
   end
-
-  def play_sound(filename, *args)
-    #TODO: implement this
-    #Gremlin::Sample.new(w, "assets/audio/#{filename}").play(*args)
-  end
 end
 
 class EndLevelScene < Naghavi::Scene
@@ -486,6 +500,7 @@ end
 class IntroScene < Naghavi::Scene
   def startup
     @background = w.add_sprite(:intro_background)
+    `#{w}.stage.smoothed = false;`
   end
 
   def button_down(button)
@@ -495,22 +510,35 @@ end
 
 # TODO: refactor IMAGES_BY_KEY so it fits better
 assets = {
+  base: 'assets/',
+
   images: Hash[
     IMAGES_BY_KEY.flat_map do |key, images|
       images.each_with_index.map do |img_name, idx|
-        [ key + idx.to_s, 'assets/images/' + img_name ]
+        [ key + idx.to_s, 'images/' + img_name ]
       end
     end
   ].merge({
-    intro_background: 'assets/images/titlescreen.png',
+    intro_background: 'images/titlescreen.png',
   }),
 
   text: Hash[
     (1..NUM_LEVELS).map do |idx|
-      ["level#{idx}", "assets/levels/#{idx}.txt"]
+      ["level#{idx}", "levels/#{idx}.txt"]
     end
-  ]
+  ],
+
+  sounds: {
+    lose: 'audio/lose.wav',
+    move: 'audio/move.wav',
+    start: 'audio/start.wav',
+    win: 'audio/win.wav',
+    music: 'audio/music.mp3',
+  },
 }
-nag_window = Naghavi::Window.new(LevelScene.new(5), assets)
+
+starting_scene = IntroScene.new
+#starting_scene = LevelScene.new(5)
+nag_window = Naghavi::Window.new(starting_scene, assets)
 game = Gremlin::Game.new(size: [13*GRID_SIZE, 10*GRID_SIZE], state: nag_window)
 `window.game = game`

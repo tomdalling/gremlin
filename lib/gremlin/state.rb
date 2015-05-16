@@ -24,12 +24,18 @@ module Gremlin
       end
 
       def preload
+        base = assets[:base] || ''
+
         assets.fetch(:images, {}).each do |key, url|
-          `#{self}.load.image(#{key}, #{url})`
+          `#{self}.load.image(#{key}, #{base + url})`
         end
 
         assets.fetch(:text, {}).each do |key, url|
-          `#{self}.load.text(#{key}, #{url})`
+          `#{self}.load.text(#{key}, #{base + url})`
+        end
+
+        assets.fetch(:sounds, {}).each do |key, url|
+          `#{self}.load.audio(#{key}, #{base + url})`
         end
       end
 
@@ -39,6 +45,13 @@ module Gremlin
 
       def add_text(text, style={})
         `#{self}.add.text(0, 0, #{text}, #{style.to_n})`
+      end
+
+      def play_sound(key, looping=false)
+        s = `#{self}.sound.add(#{key})`
+        `#{s}.loop = #{looping}`
+        `#{s}.play()`
+        s
       end
 
       # TODO: better name
