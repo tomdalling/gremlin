@@ -7,6 +7,7 @@ require 'gremlin/state'
 require 'gremlin/game'
 require 'gremlin/sprite'
 require 'gremlin/text'
+require 'gremlin/graphics'
 
 module Gremlin
 end

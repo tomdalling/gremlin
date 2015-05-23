@@ -29,10 +29,31 @@ module Gremlin
         end
       end
 
+      def create
+        @_loading_text.destroy! if @_loading_text
+        @_loading_bar.destroy! if @_loading_bar
+      end
+
+      def load_update
+        return if `#{self}.state._created`
+
+        unless @_loading_text
+          @_loading_text = add_text("Loading...", fill: 'white')
+          @_loading_text.position.set!(15, 15)
+          @_loading_bar = `#{self}.add.graphics(0,0)`
+          `#{@_loading_bar}.beginFill(0xFFFFFF, 1)`
+          `#{@_loading_bar}.drawRect(0, 0, 1, 10)`
+          `#{@_loading_bar}.endFill()`
+        end
+
+        progress = `#{self}.load.progress / 100`
+        @_loading_bar.scale.set!(progress * `#{self}.game.width`, 1)
+      end
+
       DEFAULT_EXTENSIONS = {
         image: 'png',
         text: 'txt',
-        audio: 'wav', #TODO: should this be mp3 or ogg?
+        audio: 'wav', #TODO: should this be mp3/ogg?
       }
 
       # [type, key, url]

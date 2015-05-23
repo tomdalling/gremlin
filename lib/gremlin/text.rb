@@ -5,5 +5,6 @@ module Gremlin
     def text=(value); `#{self}.text = #{value}`; end
     def bring_to_top; `#{@parent}.bringToTop(#{self})`; end
     def width; `#{self}.width`; end
+    def destroy!; `#{self}.destroy()`; end
   end
 end

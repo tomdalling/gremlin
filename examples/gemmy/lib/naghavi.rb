@@ -34,6 +34,7 @@ module Naghavi
     end
 
     def create
+      super
       transition_to_scene(@initial_scene)
     end
 
