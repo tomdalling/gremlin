@@ -13936,10 +13936,9 @@ if (idx == null) idx = nil;
       };
 
       def['$key_down?'] = function(key) {
-        var self = this, result = nil;
+        var self = this;
 
-        result = !!self.input.keyboard.isDown(key);
-        return result;
+        return !!self.input.keyboard.isDown(key);
       };
 
       def.$game_size = function() {
@@ -14471,7 +14470,7 @@ if (idx == null) idx = nil;
   Opal.dynamic_require_severity = "error";
   var $a, $b, TMP_1, $c, TMP_2, $d, TMP_3, $e, TMP_4, $f, TMP_5, $g, TMP_6, $h, TMP_7, $i, TMP_8, $j, $k, TMP_14, self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $hash2 = Opal.hash2, $klass = Opal.klass, $range = Opal.range, starting_scene = nil, nag_window = nil, game = nil;
 
-  Opal.add_stubs(['$require', '$include', '$/', '$*', '$new', '$reopen', '$map', '$fetch', '$each_char', '$chomp', '$lines', '$each_with_index', '$rows', '$[]', '$size', '$first', '$cell_at', '$==', '$type', '$>', '$<', '$pos', '$player', '$distance', '$x', '$y', '$<<', '$!', '$alive', '$orientation=', '$orientation_for_movement', '$dup', '$vadd', '$can_move_to?', '$level', '$select', '$entities', '$index', '$play_sound', '$w', '$get_text', '$from_text', '$entities=', '$each_cell', '$===', '$player=', '$so', '$type=', '$goal=', '$image_frame=', '$rand', '$sample', '$sprite=', '$add_sprite', '$+', '$to_s', '$image_frame', '$set!', '$position', '$sprite', '$pivot', '$width', '$height', '$scale', '$rotation=', '$orientation', '$goal', '$each', '$image_key', '$animation', '$current_frame', '$bring_to_top', '$reverse', '$sort_by', '$to_proc', '$add_text', '$movement_sets', '$move_player', '$next_level', '$%', '$try_move', '$just_teleported=', '$ai', '$think', '$apply_ai', '$concat', '$spawned_entities', '$spawned_entities=', '$movements', '$moves', '$spawns', '$alive=', '$kills', '$>=', '$row_count', '$column_count', '$find', '$pushable', '$vset!', '$-@', '$update_animation', '$update_next_movement', '$secs_per_frame=', '$pos_fraction', '$any?', '$deadly', '$teleport_pair', '$just_teleported', '$pos=', '$select!', '$destroy!', '$secs_elapsed_this_frame=', '$secs_elapsed_this_frame', '$delta_time', '$secs_per_frame', '$-', '$current_frame=', '$image_key=', '$<=', '$progress', '$progress=', '$entity', '$vlerp', '$from', '$shift', '$draw_entity_img', '$tint', '$draw_entity_solid', '$color', '$vmul', '$draw_quad', '$game_size']);
+  Opal.add_stubs(['$require', '$include', '$/', '$*', '$new', '$reopen', '$map', '$fetch', '$each_char', '$chomp', '$lines', '$each_with_index', '$rows', '$[]', '$size', '$first', '$cell_at', '$==', '$type', '$>', '$<', '$pos', '$player', '$distance', '$x', '$y', '$<<', '$!', '$alive', '$orientation=', '$orientation_for_movement', '$dup', '$vadd', '$can_move_to?', '$level', '$select', '$entities', '$index', '$play_sound', '$w', '$get_text', '$from_text', '$entities=', '$each_cell', '$===', '$player=', '$so', '$type=', '$goal=', '$image_frame=', '$rand', '$sample', '$sprite=', '$add_sprite', '$+', '$to_s', '$image_frame', '$set!', '$position', '$sprite', '$pivot', '$width', '$height', '$scale', '$rotation=', '$orientation', '$goal', '$each', '$image_key', '$animation', '$current_frame', '$bring_to_top', '$reverse', '$sort_by', '$to_proc', '$add_text', '$movement_sets', '$move_player', '$next_level', '$%', '$try_move', '$just_teleported=', '$ai', '$think', '$apply_ai', '$movements', '$moves', '$spawns', '$alive=', '$kills', '$>=', '$row_count', '$column_count', '$find', '$pushable', '$vset!', '$-@', '$update_animation', '$update_next_movement', '$secs_per_frame=', '$pos_fraction', '$any?', '$deadly', '$teleport_pair', '$just_teleported', '$pos=', '$select!', '$destroy!', '$secs_elapsed_this_frame=', '$secs_elapsed_this_frame', '$delta_time', '$secs_per_frame', '$-', '$current_frame=', '$image_key=', '$<=', '$progress', '$progress=', '$entity', '$vlerp', '$from', '$shift', '$game_size']);
   self.$require("naghavi");
   self.$include((($scope.get('Gremlin')).$$scope.get('Keyboard')));
   Opal.cdecl($scope, 'NUM_LEVELS', 9);
@@ -14480,7 +14479,7 @@ if (idx == null) idx = nil;
   Opal.cdecl($scope, 'CELL_TYPES_BY_CHAR', $hash2(["x", " ", "p", "g", "e", "s", "d", "t"], {"x": "wall", " ": "floor", "p": "player", "g": "goal", "e": "enemy", "s": "shooter", "d": "dirtball", "t": "teleporter"}));
   Opal.cdecl($scope, 'PI', Math.PI);
   Opal.cdecl($scope, 'ORIENTATION_ROTATIONS', $hash2(["north", "east", "south", "west"], {"north": 0, "east": $scope.get('PI')['$/'](2), "south": $scope.get('PI'), "west": $scope.get('PI')['$*'](1.5)}));
-  Opal.cdecl($scope, 'IMAGES_BY_KEY', $hash2(["player", "chaser", "floor", "wall", "gems", "goal", "dirtball", "shooter", "bullet", "teleporter"], {"player": ["ant_01.png", "ant_02.png", "ant_03.png"], "chaser": ["enemy_ant_01.png", "enemy_ant_02.png", "enemy_ant_03.png"], "floor": ["floor.png", "floor_cracked_01.png", "floor_cracked_02.png", "floor_cracked_03.png"], "wall": ["wall01.png", "wall02.png", "wall03.png", "wall04.png"], "gems": ["blue_gem.png", "red_gem.png"], "goal": ["leaf_1.png", "leaf_2.png", "leaf_3.png"], "dirtball": ["dirt_ball.png"], "shooter": ["enemy_1.png", "enemy_2.png", "enemy_3.png", "enemy_4.png", "enemy_5.png"], "bullet": ["bullen.png"], "teleporter": ["Swirl 1.png", "Swirl 2.png", "Swirl 3.png", "Swirl 4.png"]}));
+  Opal.cdecl($scope, 'ANIMATIONS_FRAMES', $hash2(["player", "chaser", "floor", "wall", "gems", "goal", "dirtball", "shooter", "bullet", "teleporter"], {"player": 3, "chaser": 3, "floor": 4, "wall": 4, "gems": 2, "goal": 3, "dirtball": 1, "shooter": 5, "bullet": 1, "teleporter": 4}));
   Opal.cdecl($scope, 'Animation', ($a = ($b = (($scope.get('Naghavi')).$$scope.get('DefStruct'))).$new, $a.$$p = (TMP_1 = function(){var self = TMP_1.$$s || this;
 
   return $hash2(["image_key", "current_frame", "secs_per_frame", "secs_elapsed_this_frame"], {"image_key": nil, "current_frame": 0, "secs_per_frame": 0.3, "secs_elapsed_this_frame": 0})}, TMP_1.$$s = self, TMP_1), $a).call($b));
@@ -14495,7 +14494,7 @@ if (idx == null) idx = nil;
   return $hash2(["movements", "progress"], {"movements": [], "progress": 0.0})}, TMP_4.$$s = self, TMP_4), $a).call($e));
   Opal.cdecl($scope, 'GameState', ($a = ($f = (($scope.get('Naghavi')).$$scope.get('DefStruct'))).$new, $a.$$p = (TMP_5 = function(){var self = TMP_5.$$s || this;
 
-  return $hash2(["level", "player", "goal", "entities", "spawned_entities", "movement_sets"], {"level": nil, "player": nil, "goal": nil, "entities": [], "spawned_entities": [], "movement_sets": []})}, TMP_5.$$s = self, TMP_5), $a).call($f));
+  return $hash2(["level", "player", "goal", "entities", "movement_sets"], {"level": nil, "player": nil, "goal": nil, "entities": [], "movement_sets": []})}, TMP_5.$$s = self, TMP_5), $a).call($f));
   Opal.cdecl($scope, 'AiResults', ($a = ($g = (($scope.get('Naghavi')).$$scope.get('DefStruct'))).$new, $a.$$p = (TMP_6 = function(){var self = TMP_6.$$s || this;
 
   return $hash2(["moves", "spawns", "kills"], {"moves": [], "spawns": [], "kills": []})}, TMP_6.$$s = self, TMP_6), $a).call($g));
@@ -14599,21 +14598,15 @@ if (cell == null) cell = nil;if (col_idx == null) col_idx = nil;
         return nil};
       p = game.$player().$pos();
       s = shooter.$pos();
-      projectile_vel = (function() {if (p.$x()['$=='](s.$x())) {
-        return [0, ((function() {if (p.$y()['$<'](s.$y())) {
-          return -1
-          } else {
-          return 1
-        }; return nil; })())]
-      } else if (p.$y()['$=='](s.$y())) {
-        return [((function() {if (p.$x()['$<'](s.$x())) {
-          return -1
-          } else {
-          return 1
-        }; return nil; })()), 0]
+      projectile_vel = (function() {if (p.$x()['$=='](s.$x())) {return [0, ((function() {if (p.$y()['$<'](s.$y())) {
+        return -1
         } else {
-        return nil
-      }; return nil; })();
+        return 1
+      }; return nil; })())]}else if (p.$y()['$=='](s.$y())) {return [((function() {if (p.$x()['$<'](s.$x())) {
+        return -1
+        } else {
+        return 1
+      }; return nil; })()), 0]}else {return nil}})();
       if (projectile_vel !== false && projectile_vel !== nil) {
         (($a = [self.$orientation_for_movement(projectile_vel.$x(), projectile_vel.$y())]), $b = shooter, $b['$orientation='].apply($b, $a), $a[$a.length-1]);
         self.projectile = $scope.get('Entity').$new($hash2(["pos", "ai", "animation"], {"pos": shooter.$pos().$dup(), "ai": $scope.get('ProjectileAi').$new(projectile_vel), "animation": $scope.get('Animation').$new($hash2(["image_key"], {"image_key": "bullet"}))}));
@@ -14695,7 +14688,7 @@ if (pos == null) pos = nil;if (cell == null) cell = nil;
         return (($a = ["floor"]), $b = cell, $b['$type='].apply($b, $a), $a[$a.length-1]);}else { return nil }})()}, TMP_16.$$s = self, TMP_16), $a).call($b);
       ($a = ($c = self.game.$level()).$each_cell, $a.$$p = (TMP_17 = function(cell_pos, cell){var self = TMP_17.$$s || this, $a, $b, num_frames = nil;
 if (cell_pos == null) cell_pos = nil;if (cell == null) cell = nil;
-      num_frames = $scope.get('IMAGES_BY_KEY')['$[]'](cell.$type()).$size();
+      num_frames = $scope.get('ANIMATIONS_FRAMES')['$[]'](cell.$type());
         (($a = [self.$rand($range(0, num_frames, true))]), $b = cell, $b['$image_frame='].apply($b, $a), $a[$a.length-1]);
         (($a = [["north", "south", "east", "west"].$sample()]), $b = cell, $b['$orientation='].apply($b, $a), $a[$a.length-1]);
         (($a = [self.$w().$add_sprite(cell.$type()['$+'](cell.$image_frame().$to_s()))]), $b = cell, $b['$sprite='].apply($b, $a), $a[$a.length-1]);
@@ -14740,30 +14733,20 @@ if (e == null) e = nil;
     };
 
     def.$move_player = function(dx, dy) {
-      var $a, $b, $c, TMP_20, $d, self = this, move_set = nil, did_move = nil, entities = nil;
+      var $a, $b, self = this, move_set = nil, did_move = nil, idx = nil, enemy = nil, ai_results = nil;
 
       move_set = $scope.get('MovementSet').$new();
       did_move = self.$try_move(self.game.$player(), dx, dy, move_set);
       if (did_move !== false && did_move !== nil) {
         (($a = [false]), $b = self.game.$player(), $b['$just_teleported='].apply($b, $a), $a[$a.length-1])};
-      entities = self.game.$entities();
-      while (entities.$size()['$>'](0)) {
-      ($b = ($c = entities).$each, $b.$$p = (TMP_20 = function(enemy){var self = TMP_20.$$s || this, $a, ai_results = nil;
-        if (self.game == null) self.game = nil;
-if (enemy == null) enemy = nil;
-      if ((($a = enemy.$ai()) !== nil && (!$a.$$is_boolean || $a == true))) {
-          ai_results = enemy.$ai().$think(enemy, self.game);
-          if (ai_results !== false && ai_results !== nil) {
-            return self.$apply_ai(enemy, ai_results, move_set)
-            } else {
-            return nil
-          };
-          } else {
-          return nil
-        }}, TMP_20.$$s = self, TMP_20), $b).call($c);
-      self.game.$entities().$concat(self.game.$spawned_entities());
-      entities = self.game.$spawned_entities();
-      (($b = [[]]), $d = self.game, $d['$spawned_entities='].apply($d, $b), $b[$b.length-1]);};
+      idx = 0;
+      while (idx['$<'](self.game.$entities().$size())) {
+      enemy = self.game.$entities()['$[]'](idx);
+      if ((($b = enemy.$ai()) !== nil && (!$b.$$is_boolean || $b == true))) {
+        ai_results = enemy.$ai().$think(enemy, self.game);
+        if (ai_results !== false && ai_results !== nil) {
+          self.$apply_ai(enemy, ai_results, move_set)};};
+      idx = idx['$+'](1);};
       if (move_set.$movements().$size()['$>'](0)) {
         return self.game.$movement_sets()['$<<'](move_set)
         } else {
@@ -14772,16 +14755,16 @@ if (enemy == null) enemy = nil;
     };
 
     def.$apply_ai = function(entity, ai_results, move_set) {
-      var $a, $b, TMP_21, $c, TMP_22, $d, TMP_23, self = this;
+      var $a, $b, TMP_20, $c, TMP_21, $d, TMP_22, self = this;
 
-      ($a = ($b = ai_results.$moves()).$each, $a.$$p = (TMP_21 = function(move){var self = TMP_21.$$s || this, $a;
+      ($a = ($b = ai_results.$moves()).$each, $a.$$p = (TMP_20 = function(move){var self = TMP_20.$$s || this, $a;
 if (move == null) move = nil;
       if ((($a = self.$try_move(entity, move.$x(), move.$y(), move_set)) !== nil && (!$a.$$is_boolean || $a == true))) {
           return ($breaker.$v = nil, $breaker)
           } else {
           return nil
-        }}, TMP_21.$$s = self, TMP_21), $a).call($b);
-      ($a = ($c = ai_results.$spawns()).$each, $a.$$p = (TMP_22 = function(entity){var self = TMP_22.$$s || this, $a, $b;
+        }}, TMP_20.$$s = self, TMP_20), $a).call($b);
+      ($a = ($c = ai_results.$spawns()).$each, $a.$$p = (TMP_21 = function(entity){var self = TMP_21.$$s || this, $a, $b;
         if (self.game == null) self.game = nil;
 if (entity == null) entity = nil;
       (($a = [self.$w().$add_sprite(entity.$animation().$image_key()['$+'](entity.$animation().$current_frame().$to_s()))]), $b = entity, $b['$sprite='].apply($b, $a), $a[$a.length-1]);
@@ -14789,14 +14772,14 @@ if (entity == null) entity = nil;
         entity.$sprite().$pivot()['$set!'](entity.$sprite().$width()['$/'](2), entity.$sprite().$height()['$/'](2));
         entity.$sprite().$scale()['$set!']($scope.get('GRID_SIZE')['$/'](entity.$sprite().$width()), $scope.get('GRID_SIZE')['$/'](entity.$sprite().$height()));
         entity.$sprite().smoothed = false;
-        return self.game.$spawned_entities()['$<<'](entity);}, TMP_22.$$s = self, TMP_22), $a).call($c);
-      return ($a = ($d = ai_results.$kills()).$each, $a.$$p = (TMP_23 = function(entity){var self = TMP_23.$$s || this, $a, $b;
+        return self.game.$entities()['$<<'](entity);}, TMP_21.$$s = self, TMP_21), $a).call($c);
+      return ($a = ($d = ai_results.$kills()).$each, $a.$$p = (TMP_22 = function(entity){var self = TMP_22.$$s || this, $a, $b;
 if (entity == null) entity = nil;
-      return (($a = [false]), $b = entity, $b['$alive='].apply($b, $a), $a[$a.length-1])}, TMP_23.$$s = self, TMP_23), $a).call($d);
+      return (($a = [false]), $b = entity, $b['$alive='].apply($b, $a), $a[$a.length-1])}, TMP_22.$$s = self, TMP_22), $a).call($d);
     };
 
     def.$try_move = function(entity, dx, dy, move_set) {
-      var $a, $b, TMP_24, $c, self = this, x = nil, y = nil, existing = nil;
+      var $a, $b, TMP_23, $c, self = this, x = nil, y = nil, existing = nil;
 
       x = entity.$pos().$x()['$+'](dx);
       y = entity.$pos().$y()['$+'](dy);
@@ -14805,9 +14788,9 @@ if (entity == null) entity = nil;
       if ((($a = ((($b = x['$<'](0)) !== false && $b !== nil) ? $b : x['$>='](self.game.$level().$column_count()))) !== nil && (!$a.$$is_boolean || $a == true))) {
         return nil};
       if ((($a = self.game.$level()['$can_move_to?'](x, y)) !== nil && (!$a.$$is_boolean || $a == true))) {
-        existing = ($a = ($b = self.game.$entities()).$find, $a.$$p = (TMP_24 = function(e){var self = TMP_24.$$s || this, $a;
+        existing = ($a = ($b = self.game.$entities()).$find, $a.$$p = (TMP_23 = function(e){var self = TMP_23.$$s || this, $a;
 if (e == null) e = nil;
-        return ($a = e.$pushable(), $a !== false && $a !== nil ?e.$pos()['$==']([x, y]) : $a)}, TMP_24.$$s = self, TMP_24), $a).call($b);
+        return ($a = e.$pushable(), $a !== false && $a !== nil ?e.$pos()['$==']([x, y]) : $a)}, TMP_23.$$s = self, TMP_23), $a).call($b);
         if ((($a = ((($c = existing['$!']()) !== false && $c !== nil) ? $c : self.$try_move(existing, dx, dy, move_set))) !== nil && (!$a.$$is_boolean || $a == true))) {
           entity.$pos()['$vset!']([x, y]);
           (($a = [self.$orientation_for_movement(dx, dy)]), $c = entity, $c['$orientation='].apply($c, $a), $a[$a.length-1]);
@@ -14822,56 +14805,56 @@ if (e == null) e = nil;
     };
 
     def.$update = function() {
-      var $a, $b, TMP_25, $c, TMP_26, $d, $e, TMP_27, TMP_28, $f, TMP_29, $g, TMP_30, self = this, did_move = nil, teleporter = nil, other_teleporter = nil;
+      var $a, $b, TMP_24, $c, TMP_25, $d, $e, TMP_26, TMP_27, $f, TMP_28, $g, TMP_29, self = this, did_move = nil, teleporter = nil, other_teleporter = nil;
 
       self.$update_animation(self.game.$player());
       self.$update_animation(self.game.$goal());
-      ($a = ($b = self.game.$entities()).$each, $a.$$p = (TMP_25 = function(entity){var self = TMP_25.$$s || this, $a;
+      ($a = ($b = self.game.$entities()).$each, $a.$$p = (TMP_24 = function(entity){var self = TMP_24.$$s || this, $a;
 if (entity == null) entity = nil;
       if ((($a = entity.$animation()) !== nil && (!$a.$$is_boolean || $a == true))) {
           return self.$update_animation(entity)
           } else {
           return nil
-        }}, TMP_25.$$s = self, TMP_25), $a).call($b);
+        }}, TMP_24.$$s = self, TMP_24), $a).call($b);
       did_move = self.$update_next_movement();
       (($a = [(function() {if (did_move !== false && did_move !== nil) {
         return 0.02
         } else {
         return 0.3
       }; return nil; })()]), $c = self.game.$player().$animation(), $c['$secs_per_frame='].apply($c, $a), $a[$a.length-1]);
-      ($a = ($c = (self.game.$entities()['$+']([self.game.$player()]))).$each, $a.$$p = (TMP_26 = function(e){var self = TMP_26.$$s || this, $a, $b;
+      ($a = ($c = (self.game.$entities()['$+']([self.game.$player()]))).$each, $a.$$p = (TMP_25 = function(e){var self = TMP_25.$$s || this, $a, $b;
 if (e == null) e = nil;
       e.$sprite().$position()['$set!']((e.$pos().$x()['$+'](e.$pos_fraction().$x()))['$*']($scope.get('GRID_SIZE'))['$+']($scope.get('GRID_SIZE')['$/'](2)), (e.$pos().$y()['$+'](e.$pos_fraction().$y()))['$*']($scope.get('GRID_SIZE'))['$+']($scope.get('GRID_SIZE')['$/'](2)));
-        return (($a = [$scope.get('ORIENTATION_ROTATIONS').$fetch(e.$orientation())]), $b = e.$sprite(), $b['$rotation='].apply($b, $a), $a[$a.length-1]);}, TMP_26.$$s = self, TMP_26), $a).call($c);
+        return (($a = [$scope.get('ORIENTATION_ROTATIONS').$fetch(e.$orientation())]), $b = e.$sprite(), $b['$rotation='].apply($b, $a), $a[$a.length-1]);}, TMP_25.$$s = self, TMP_25), $a).call($c);
       if (did_move !== false && did_move !== nil) {
         return nil};
       if (self.game.$player().$pos()['$=='](self.game.$goal().$pos())) {
         self.$w().$play_sound("win");
         return $scope.get('EndLevelScene').$new("You win!", (((($scope.get('Naghavi')).$$scope.get('Color'))).$$scope.get('YELLOW')), "continue to next level", self.$next_level());
-      } else if ((($a = ($d = ($e = self.game.$entities())['$any?'], $d.$$p = (TMP_27 = function(e){var self = TMP_27.$$s || this, $a;
+      } else if ((($a = ($d = ($e = self.game.$entities())['$any?'], $d.$$p = (TMP_26 = function(e){var self = TMP_26.$$s || this, $a;
         if (self.game == null) self.game = nil;
 if (e == null) e = nil;
-      return ($a = e.$deadly(), $a !== false && $a !== nil ?e.$pos()['$=='](self.game.$player().$pos()) : $a)}, TMP_27.$$s = self, TMP_27), $d).call($e)) !== nil && (!$a.$$is_boolean || $a == true))) {
+      return ($a = e.$deadly(), $a !== false && $a !== nil ?e.$pos()['$=='](self.game.$player().$pos()) : $a)}, TMP_26.$$s = self, TMP_26), $d).call($e)) !== nil && (!$a.$$is_boolean || $a == true))) {
         self.$w().$play_sound("lose");
         return $scope.get('EndLevelScene').$new("You lose", (((($scope.get('Naghavi')).$$scope.get('Color'))).$$scope.get('RED')), "try again", self.level_number);};
-      teleporter = ($a = ($d = self.game.$entities()).$find, $a.$$p = (TMP_28 = function(e){var self = TMP_28.$$s || this, $a;
+      teleporter = ($a = ($d = self.game.$entities()).$find, $a.$$p = (TMP_27 = function(e){var self = TMP_27.$$s || this, $a;
         if (self.game == null) self.game = nil;
 if (e == null) e = nil;
-      return ($a = e.$teleport_pair(), $a !== false && $a !== nil ?e.$pos()['$=='](self.game.$player().$pos()) : $a)}, TMP_28.$$s = self, TMP_28), $a).call($d);
+      return ($a = e.$teleport_pair(), $a !== false && $a !== nil ?e.$pos()['$=='](self.game.$player().$pos()) : $a)}, TMP_27.$$s = self, TMP_27), $a).call($d);
       if ((($a = (($f = teleporter !== false && teleporter !== nil) ? self.game.$player().$just_teleported()['$!']() : $f)) !== nil && (!$a.$$is_boolean || $a == true))) {
         (($a = [true]), $f = self.game.$player(), $f['$just_teleported='].apply($f, $a), $a[$a.length-1]);
-        other_teleporter = ($a = ($f = self.game.$entities()).$find, $a.$$p = (TMP_29 = function(e){var self = TMP_29.$$s || this, $a;
+        other_teleporter = ($a = ($f = self.game.$entities()).$find, $a.$$p = (TMP_28 = function(e){var self = TMP_28.$$s || this, $a;
 if (e == null) e = nil;
-        return (($a = e.$teleport_pair()['$=='](teleporter.$teleport_pair())) ? e['$=='](teleporter)['$!']() : $a)}, TMP_29.$$s = self, TMP_29), $a).call($f);
+        return (($a = e.$teleport_pair()['$=='](teleporter.$teleport_pair())) ? e['$=='](teleporter)['$!']() : $a)}, TMP_28.$$s = self, TMP_28), $a).call($f);
         (($a = [other_teleporter.$pos().$dup()]), $g = self.game.$player(), $g['$pos='].apply($g, $a), $a[$a.length-1]);};
-      return ($a = ($g = self.game.$entities())['$select!'], $a.$$p = (TMP_30 = function(e){var self = TMP_30.$$s || this, $a;
+      return ($a = ($g = self.game.$entities())['$select!'], $a.$$p = (TMP_29 = function(e){var self = TMP_29.$$s || this, $a;
 if (e == null) e = nil;
       if ((($a = e.$alive()) !== nil && (!$a.$$is_boolean || $a == true))) {
           return true
           } else {
           e.$sprite()['$destroy!']();
           return false;
-        }}, TMP_30.$$s = self, TMP_30), $a).call($g);
+        }}, TMP_29.$$s = self, TMP_29), $a).call($g);
     };
 
     def.$update_animation = function(entity) {
@@ -14883,7 +14866,7 @@ if (e == null) e = nil;
       while (anim.$secs_elapsed_this_frame()['$>='](anim.$secs_per_frame())) {
       ($b = anim, $b['$secs_elapsed_this_frame=']($b.$secs_elapsed_this_frame()['$-'](anim.$secs_per_frame())));
       ($b = anim, $b['$current_frame=']($b.$current_frame()['$+'](1)));
-      if (anim.$current_frame()['$>=']($scope.get('IMAGES_BY_KEY')['$[]'](anim.$image_key()).$size())) {
+      if (anim.$current_frame()['$>=']($scope.get('ANIMATIONS_FRAMES')['$[]'](anim.$image_key()))) {
         (($b = [0]), $c = anim, $c['$current_frame='].apply($c, $b), $b[$b.length-1])};};
       if ((($a = anim.$current_frame()['$=='](old_frame)['$!']()) !== nil && (!$a.$$is_boolean || $a == true))) {
         return (($a = [anim.$image_key()['$+'](anim.$current_frame().$to_s())]), $b = entity.$sprite(), $b['$image_key='].apply($b, $a), $a[$a.length-1])
@@ -14892,41 +14875,21 @@ if (e == null) e = nil;
       };
     };
 
-    def.$update_next_movement = function() {
-      var $a, $b, TMP_31, self = this, move_set = nil;
+    return (def.$update_next_movement = function() {
+      var $a, $b, TMP_30, self = this, move_set = nil;
 
       move_set = self.game.$movement_sets().$first();
       if (move_set !== false && move_set !== nil) {
         if (move_set.$progress()['$<='](0.0)) {
           self.$w().$play_sound("move")};
         ($a = move_set, $a['$progress=']($a.$progress()['$+']((self.$w().$delta_time()['$/']($scope.get('MOVE_INTERVAL'))))));
-        ($a = ($b = move_set.$movements()).$each, $a.$$p = (TMP_31 = function(m){var self = TMP_31.$$s || this;
+        ($a = ($b = move_set.$movements()).$each, $a.$$p = (TMP_30 = function(m){var self = TMP_30.$$s || this;
 if (m == null) m = nil;
-        return m.$entity().$pos_fraction()['$vset!']($scope.get('Naghavi').$vlerp(m.$from(), [0, 0], move_set.$progress()))}, TMP_31.$$s = self, TMP_31), $a).call($b);
+        return m.$entity().$pos_fraction()['$vset!']($scope.get('Naghavi').$vlerp(m.$from(), [0, 0], move_set.$progress()))}, TMP_30.$$s = self, TMP_30), $a).call($b);
         if (move_set.$progress()['$>='](1.0)) {
           self.game.$movement_sets().$shift()};};
       return move_set['$!']()['$!']();
-    };
-
-    def.$draw_entity = function(entity) {
-      var $a, self = this, pos = nil;
-
-      pos = entity.$pos().$vadd(entity.$pos_fraction());
-      if ((($a = entity.$animation()) !== nil && (!$a.$$is_boolean || $a == true))) {
-        return self.$draw_entity_img(pos, entity.$animation().$image_key(), entity.$orientation(), entity.$animation().$current_frame(), entity.$tint())
-      } else if ((($a = entity.$image_key()) !== nil && (!$a.$$is_boolean || $a == true))) {
-        return self.$draw_entity_img(pos, entity.$image_key(), entity.$orientation(), entity.$image_frame(), entity.$tint())
-        } else {
-        return self.$draw_entity_solid(pos, entity.$color())
-      };
-    };
-
-    return (def.$draw_entity_solid = function(cell_pos, color) {
-      var self = this, pos = nil;
-
-      pos = cell_pos.$vmul($scope.get('GRID_SIZE'));
-      return self.$w().$draw_quad(pos.$x(), pos.$y(), color, pos.$x()['$+']($scope.get('GRID_SIZE')), pos.$y(), color, pos.$x()['$+']($scope.get('GRID_SIZE')), pos.$y()['$+']($scope.get('GRID_SIZE')), color, pos.$x(), pos.$y()['$+']($scope.get('GRID_SIZE')), color, 0);
-    }, nil) && 'draw_entity_solid';
+    }, nil) && 'update_next_movement';
   })(self, (($scope.get('Naghavi')).$$scope.get('Scene')));
   (function($base, $super) {
     function $EndLevelScene(){};
@@ -14954,13 +14917,9 @@ if (m == null) m = nil;
     };
 
     def.$button_down = function(button) {
-      var self = this;
+      var self = this, $case = nil;
 
-      if (button['$==']($scope.get('KEY_SPACEBAR'))) {
-        return $scope.get('LevelScene').$new(self.next_level)
-        } else {
-        return nil
-      };
+      return (function() {$case = button;if ($scope.get('KEY_SPACEBAR')['$===']($case)) {return $scope.get('LevelScene').$new(self.next_level)}else { return nil }})();
     };
 
     return (def.$startup = function() {

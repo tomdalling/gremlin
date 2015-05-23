@@ -24,17 +24,17 @@ ORIENTATION_ROTATIONS = {
   west: PI*1.5,
 }
 
-IMAGES_BY_KEY = {
-  player: ['ant_01.png', 'ant_02.png', 'ant_03.png'],
-  chaser: ['enemy_ant_01.png', 'enemy_ant_02.png', 'enemy_ant_03.png'],
-  floor: ['floor.png', 'floor_cracked_01.png', 'floor_cracked_02.png', 'floor_cracked_03.png'],
-  wall: ['wall01.png', 'wall02.png', 'wall03.png', 'wall04.png'],
-  gems: ['blue_gem.png', 'red_gem.png'],
-  goal: ['leaf_1.png', 'leaf_2.png', 'leaf_3.png'],
-  dirtball: ['dirt_ball.png'],
-  shooter: ['enemy_1.png', 'enemy_2.png', 'enemy_3.png', 'enemy_4.png', 'enemy_5.png'],
-  bullet: ['bullen.png'],
-  teleporter: ['Swirl 1.png', 'Swirl 2.png', 'Swirl 3.png', 'Swirl 4.png'],
+ANIMATIONS_FRAMES = {
+  player: 3,
+  chaser: 3,
+  floor: 4,
+  wall: 4,
+  gems: 2,
+  goal: 3,
+  dirtball: 1,
+  shooter: 5,
+  bullet: 1,
+  teleporter: 4,
 }
 
 Animation = Naghavi::DefStruct.new {{
@@ -78,7 +78,6 @@ GameState = Naghavi::DefStruct.new {{
   player: nil,
   goal: nil,
   entities: [],
-  spawned_entities: [],
   movement_sets: [],
 }}
 
@@ -151,10 +150,10 @@ class ChaserAi
 
     moves = []
     if dist < 3.5
-      if e.x < p.x then moves << [1, 0] end
-      if e.x > p.x then moves << [-1, 0] end
-      if e.y > p.y then moves << [0, -1] end
-      if e.y < p.y then moves << [0, 1] end
+      moves << [ 1,  0] if e.x < p.x
+      moves << [-1,  0] if e.x > p.x
+      moves << [ 0, -1] if e.y > p.y
+      moves << [ 0,  1] if e.y < p.y
     end
 
     AiResults.new(moves: moves)
@@ -172,14 +171,13 @@ class ShooterAi
 
     p = game.player.pos
     s = shooter.pos
-    projectile_vel =
-      if p.x == s.x
-        [0, (p.y < s.y ? -1 : 1)]
-      elsif p.y == s.y
-        [(p.x < s.x ? -1 : 1), 0]
-      else
-        nil
+    projectile_vel = begin
+      case
+      when p.x == s.x then [0, (p.y < s.y ? -1 : 1)]
+      when p.y == s.y then [(p.x < s.x ? -1 : 1), 0]
+      else nil
       end
+    end
 
     if projectile_vel
       shooter.orientation = orientation_for_movement(projectile_vel.x, projectile_vel.y)
@@ -260,7 +258,7 @@ class LevelScene < Naghavi::Scene
     end
 
     @game.level.each_cell do |cell_pos, cell|
-      num_frames = IMAGES_BY_KEY[cell.type].size
+      num_frames = ANIMATIONS_FRAMES[cell.type]
       cell.image_frame = rand(0...num_frames)
       cell.orientation = [:north, :south, :east, :west].sample
 
@@ -318,19 +316,16 @@ class LevelScene < Naghavi::Scene
     did_move = try_move(@game.player, dx, dy, move_set)
     @game.player.just_teleported = false if did_move
 
-    entities = @game.entities
-    while entities.size > 0
-      entities.each do |enemy|
-        if enemy.ai
-          ai_results = enemy.ai.think(enemy, @game)
-          apply_ai(enemy, ai_results, move_set) if ai_results
-        end
+    # explicit idx looping necessary because AI can spawn new entities during iteration
+    idx = 0
+    while idx < @game.entities.size
+      enemy = @game.entities[idx]
+      if enemy.ai
+        ai_results = enemy.ai.think(enemy, @game)
+        apply_ai(enemy, ai_results, move_set) if ai_results
       end
 
-      # repeat for newly spawned entities, adding them back into @game.entities
-      @game.entities.concat(@game.spawned_entities)
-      entities = @game.spawned_entities
-      @game.spawned_entities = []
+      idx += 1
     end
 
     @game.movement_sets << move_set if move_set.movements.size > 0
@@ -346,11 +341,9 @@ class LevelScene < Naghavi::Scene
       entity.sprite.pivot.set!(entity.sprite.width/2, entity.sprite.height/2)
       entity.sprite.scale.set!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
       `#{entity.sprite}.smoothed = false`
-      @game.spawned_entities << entity
+      @game.entities << entity
     end
-    ai_results.kills.each do |entity|
-      entity.alive = false
-    end
+    ai_results.kills.each { |entity| entity.alive = false }
   end
 
   def try_move(entity, dx, dy, move_set)
@@ -427,7 +420,7 @@ class LevelScene < Naghavi::Scene
     while anim.secs_elapsed_this_frame >= anim.secs_per_frame
       anim.secs_elapsed_this_frame -= anim.secs_per_frame
       anim.current_frame += 1
-      anim.current_frame = 0 if anim.current_frame >= IMAGES_BY_KEY[anim.image_key].size
+      anim.current_frame = 0 if anim.current_frame >= ANIMATIONS_FRAMES[anim.image_key]
     end
 
     if anim.current_frame != old_frame
@@ -451,25 +444,6 @@ class LevelScene < Naghavi::Scene
     !!move_set
   end
 
-  def draw_entity(entity)
-    pos = entity.pos.vadd(entity.pos_fraction)
-    if entity.animation
-      draw_entity_img(pos, entity.animation.image_key, entity.orientation, entity.animation.current_frame, entity.tint)
-    elsif entity.image_key
-      draw_entity_img(pos, entity.image_key, entity.orientation, entity.image_frame, entity.tint)
-    else
-      draw_entity_solid(pos, entity.color)
-    end
-  end
-
-  def draw_entity_solid(cell_pos, color)
-    pos = cell_pos.vmul(GRID_SIZE)
-    w.draw_quad(pos.x, pos.y, color,
-                pos.x + GRID_SIZE, pos.y, color,
-                pos.x + GRID_SIZE, pos.y + GRID_SIZE, color,
-                pos.x, pos.y + GRID_SIZE, color,
-                0)
-  end
 end
 
 class EndLevelScene < Naghavi::Scene
@@ -481,8 +455,8 @@ class EndLevelScene < Naghavi::Scene
   end
 
   def button_down(button)
-    if button == KEY_SPACEBAR
-      return LevelScene.new(@next_level)
+    case button
+    when KEY_SPACEBAR then LevelScene.new(@next_level)
     end
   end
 
@@ -511,8 +485,8 @@ end
 ASSETS = {
   image: [
     :intro_background,
-    [:dirtball, 1], #TODO: convert to just ":dirtball"
-    [:bullet, 1], #TODO: convert to just ":bullet"
+    [:dirtball, 1],
+    [:bullet, 1],
     [:player, 3],
     [:chaser, 3],
     [:wall, 4],

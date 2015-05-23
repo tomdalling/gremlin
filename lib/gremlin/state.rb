@@ -115,8 +115,7 @@ module Gremlin
       end
 
       def key_down?(key)
-        result = `!!#{self}.input.keyboard.isDown(#{key})`
-        result
+        `!!#{self}.input.keyboard.isDown(#{key})`
       end
 
       def game_size
