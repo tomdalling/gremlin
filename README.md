@@ -23,3 +23,25 @@ open http://localhost:8000/
 
 [Opal]: http://opalrb.org/
 [Phaser]: http://phaser.io/
+
+## TODO
+
+ - Refactor asset loading so it matches Phaser loading (need to account for
+   spritesheets/atlases)
+ - Rip out custom animation from gemmy and replace with Phaser animation
+ - Opalize Phaser.Group
+ - Opalize Phaser.Tween
+ - Remove State class in favour of having a single state for every game
+ - Rethink the API for creating game objects (text, images, sprites, audio, etc).
+   Who should be responsible for creation?
+ - Completely remove naghavi, moving functionality into gremlin
+ - Do ENTITY_SORT_ORDER better in gemmy.
+ - Opal API for sprite smoothing (global setting?)
+ - 2D vector API? Expand upon existing PIXI.Point class?
+ - Try remove NUM_LEVELS from gemmy
+ - "You win" screen at end of gemmy
+ - "Press any key to begin" on gemmy intro
+ - Investigate whether played sounds need to be `destroy`'d, or if they can just be GC'd
+ - Opal API for audio instances.
+ - Responsive canvas resizing
+ - Refactor loading screen
