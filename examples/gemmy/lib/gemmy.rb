@@ -2,7 +2,6 @@ require 'naghavi'
 include Gremlin::Keyboard
 
 NUM_LEVELS = 9
-
 MOVE_INTERVAL = 0.1
 GRID_SIZE = 64
 CELL_TYPES_BY_CHAR = {
@@ -288,7 +287,7 @@ class LevelScene < Naghavi::Scene
       .reverse
       .each{ |e| e.sprite.bring_to_top }
 
-    @level_number_text = w.add_text("Level #@level_number", fill: 'white')
+    @level_number_text = w.add_text("Level #{@level_number + 1}", fill: 'white')
     @level_number_text.position.set!(15, 15)
 
     w.play_sound(:start)
@@ -310,7 +309,7 @@ class LevelScene < Naghavi::Scene
   end
 
   def next_level(diff = 1)
-    ((@level_number + diff - 1) % NUM_LEVELS) + 1
+    (@level_number + diff) % NUM_LEVELS
   end
 
   def move_player(dx, dy)
@@ -346,6 +345,7 @@ class LevelScene < Naghavi::Scene
       entity.sprite.position.set!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
       entity.sprite.pivot.set!(entity.sprite.width/2, entity.sprite.height/2)
       entity.sprite.scale.set!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
+      `#{entity.sprite}.smoothed = false`
       @game.spawned_entities << entity
     end
     ai_results.kills.each do |entity|
@@ -504,41 +504,39 @@ class IntroScene < Naghavi::Scene
   end
 
   def button_down(button)
-    LevelScene.new(1)
+    LevelScene.new(0)
   end
 end
 
-# TODO: refactor IMAGES_BY_KEY so it fits better
-assets = {
-  base: 'assets/',
-
-  images: Hash[
-    IMAGES_BY_KEY.flat_map do |key, images|
-      images.each_with_index.map do |img_name, idx|
-        [ key + idx.to_s, 'images/' + img_name ]
-      end
-    end
-  ].merge({
-    intro_background: 'images/titlescreen.png',
-  }),
-
-  text: Hash[
-    (1..NUM_LEVELS).map do |idx|
-      ["level#{idx}", "levels/#{idx}.txt"]
-    end
+ASSETS = {
+  image: [
+    :intro_background,
+    [:dirtball, 1], #TODO: convert to just ":dirtball"
+    [:bullet, 1], #TODO: convert to just ":bullet"
+    [:player, 3],
+    [:chaser, 3],
+    [:wall, 4],
+    [:goal, 3],
+    [:floor, 4],
+    [:shooter, 5],
+    [:teleporter, 4],
   ],
 
-  sounds: {
-    lose: 'audio/lose.wav',
-    move: 'audio/move.wav',
-    start: 'audio/start.wav',
-    win: 'audio/win.wav',
-    music: 'audio/music.mp3',
-  },
+  text: [
+    [:level, NUM_LEVELS],
+  ],
+
+  audio: [
+    :lose,
+    :move,
+    :start,
+    :win,
+    [:music, 'mp3'],
+  ],
 }
 
 starting_scene = IntroScene.new
 #starting_scene = LevelScene.new(5)
-nag_window = Naghavi::Window.new(starting_scene, assets)
+nag_window = Naghavi::Window.new(starting_scene, ASSETS)
 game = Gremlin::Game.new(size: [13*GRID_SIZE, 10*GRID_SIZE], state: nag_window)
 `window.game = game`

@@ -24,18 +24,52 @@ module Gremlin
       end
 
       def preload
-        base = assets[:base] || ''
-
-        assets.fetch(:images, {}).each do |key, url|
-          `#{self}.load.image(#{key}, #{base + url})`
+        normalize_asset_manifest(assets).each do |(type, key, url)|
+          `#{self}.load[#{type}](#{key}, #{url})`
         end
+      end
 
-        assets.fetch(:text, {}).each do |key, url|
-          `#{self}.load.text(#{key}, #{base + url})`
+      DEFAULT_EXTENSIONS = {
+        image: 'png',
+        text: 'txt',
+        audio: 'wav', #TODO: should this be mp3 or ogg?
+      }
+
+      # [type, key, url]
+      def normalize_asset_manifest(assets_by_type)
+        assets_by_type.flat_map do |type, asset_list|
+          asset_list.flat_map do |asset|
+            key, count, ext = normalize_asset(asset)
+            ext ||= DEFAULT_EXTENSIONS[type]
+
+            if count
+              count.times.map do |idx|
+                num = (idx+1).to_s.rjust(2, '0')
+                [type, key+idx.to_s, "asset/#{type}/#{key}_#{num}.#{ext}"]
+              end
+            else
+              [[type, key, "asset/#{type}/#{key}.#{ext}"]]
+            end
+          end
         end
+      end
 
-        assets.fetch(:sounds, {}).each do |key, url|
-          `#{self}.load.audio(#{key}, #{base + url})`
+      # [key, count, ext]
+      def normalize_asset(asset)
+        if asset.is_a? String
+          [asset, nil, nil]
+        else
+          case asset.size
+          when 1 then [asset.first, nil, nil]
+          when 2
+            if asset.last.is_a? Integer
+              [asset.first, asset.last, nil]
+            else
+              [asset.first, nil, asset.last]
+            end
+          when 3 then asset
+          else fail("Invalid asset: #{item.inspect}") unless (1..3).include?(item.size)
+          end
         end
       end
 
