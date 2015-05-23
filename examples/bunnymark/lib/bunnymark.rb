@@ -7,13 +7,12 @@ Bunny = Struct.new(:sprite, :velocity)
 class MyState < Gremlin::State
   def assets
     {
-      images: {
-        bunny: 'bunny.png',
-      },
+      image: [:bunny]
     }
   end
 
   def create
+    super
     @bunnies = []
     @fps = add_text('', fill: :white)
     @fps.position.set!(20, 20)
@@ -35,7 +34,7 @@ class MyState < Gremlin::State
       pos.y += dt*vel.y
 
       # bounce off floor
-      max_y = pos.y + size.y 
+      max_y = pos.y + size.y
       if max_y > gs.y
         pos.y = gs.y - (max_y - gs.y) - size.y
         vel.y = -(vel.y)
