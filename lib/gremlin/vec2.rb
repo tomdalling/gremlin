@@ -22,6 +22,16 @@ module Gremlin
       self.y += y
     end
 
+    def sub!(other)
+      self.x -= other.x
+      self.y -= other.y
+    end
+
+    def esub!(x, y)
+      self.x -= x
+      self.y -= y
+    end
+
     def mul!(scalar)
       self.x *= scalar
       self.y *= scalar
@@ -31,12 +41,20 @@ module Gremlin
       Vec2[x + other.x, y + other.y]
     end
 
+    def -(other)
+      Vec2[x - other.x, y - other.y]
+    end
+
     def *(scalar)
       Vec2[scalar*x, scalar*y]
     end
 
     def coerce(other)
       [self, other]
+    end
+
+    def length
+      edistance_to(0, 0)
     end
 
     def ==(other)
@@ -60,7 +78,11 @@ module Gremlin
     end
 
     def distance_to(other)
-      `Math.sqrt(Math.pow(#{x} - #{other.x}, 2) + Math.pow(#{y} - #{other.y}, 2))`
+      edistance_to(other.x, other.y)
+    end
+
+    def edistance_to(ox, oy)
+      `Math.sqrt(Math.pow(#{x} - #{ox}, 2) + Math.pow(#{y} - #{oy}, 2))`
     end
 
     def lerp_to(other, fraction)
