@@ -377,7 +377,6 @@ class LevelScene < Scene
       cell.sprite.pivot.eset!(cell.sprite.width / 2, cell.sprite.height / 2)
       cell.sprite.scale.eset!(GRID_SIZE/cell.sprite.width, GRID_SIZE/cell.sprite.height)
       cell.sprite.rotation = ORIENTATION_ROTATIONS.fetch(cell.orientation)
-      `#{cell.sprite}.smoothed = false`
     end
 
     all_entities = @state.entities + [@state.player, @state.goal]
@@ -387,7 +386,6 @@ class LevelScene < Scene
       e.sprite.position.eset!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
       e.sprite.pivot.eset!(e.sprite.width/2, e.sprite.height/2)
       e.sprite.scale.eset!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
-      `#{e.sprite}.smoothed = false`
     end
 
     all_entities
@@ -450,7 +448,6 @@ class LevelScene < Scene
       entity.sprite.position.eset!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
       entity.sprite.pivot.eset!(entity.sprite.width/2, entity.sprite.height/2)
       entity.sprite.scale.eset!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
-      `#{entity.sprite}.smoothed = false`
       @state.entities << entity
     end
     ai_results.kills.each { |entity| entity.alive = false }
@@ -595,6 +592,7 @@ end
 g = Gremlin.run_game(
   GemmyGame,
   width: 13*GRID_SIZE,
-  height: 10*GRID_SIZE
+  height: 10*GRID_SIZE,
+  smooth_sprites: false
 )
 `window.game = #{g}`

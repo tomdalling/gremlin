@@ -22,6 +22,7 @@ module Gremlin
   def self.run_game(game_class, options)
     state = game_class.new
     state.patch_phaser_methods!
+    state.smooth_sprites = options.fetch(:smooth_sprites, true)
 
     width = options.fetch(:width, `undefined`)
     height = options.fetch(:height, `undefined`)

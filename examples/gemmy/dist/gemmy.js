@@ -13896,7 +13896,7 @@ Opal.modules["gremlin/game"] = function(Opal) {
   Opal.dynamic_require_severity = "error";
   var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $module = Opal.module, $klass = Opal.klass, $hash2 = Opal.hash2, $range = Opal.range;
 
-  Opal.add_stubs(['$raise', '$to_n', '$[]', '$protected', '$init', '$each', '$normalize_asset_manifest', '$assets', '$add_text', '$eset!', '$position', '$scale', '$*', '$destroy!', '$create', '$render', '$update', '$paused', '$pause_update', '$resize', '$shutdown', '$private', '$key_down', '$flat_map', '$normalize_asset', '$map', '$rjust', '$to_s', '$+', '$times', '$is_a?', '$size', '$===', '$first', '$last', '$include?', '$item', '$fail', '$inspect']);
+  Opal.add_stubs(['$raise', '$to_n', '$[]', '$protected', '$attr_accessor', '$init', '$each', '$normalize_asset_manifest', '$assets', '$add_text', '$eset!', '$position', '$scale', '$*', '$destroy!', '$create', '$render', '$update', '$paused', '$pause_update', '$resize', '$shutdown', '$private', '$key_down', '$flat_map', '$normalize_asset', '$map', '$rjust', '$to_s', '$+', '$times', '$is_a?', '$size', '$===', '$first', '$last', '$include?', '$item', '$fail', '$inspect']);
   return (function($base) {
     var self = $module($base, 'Gremlin');
 
@@ -13908,7 +13908,7 @@ Opal.modules["gremlin/game"] = function(Opal) {
 
       var def = self.$$proto, $scope = self.$$scope;
 
-      def._loading_text = def._loading_bar = nil;
+      def.smooth_sprites = def._loading_text = def._loading_bar = nil;
       def.$init = function() {
         var self = this;
 
@@ -13970,9 +13970,11 @@ Opal.modules["gremlin/game"] = function(Opal) {
       };
 
       def.$add_sprite = function(key) {
-        var self = this;
+        var self = this, s = nil;
 
-        return self.add.sprite(0, 0, key);
+        s = self.add.sprite(0, 0, key);
+        s.smoothed = self.smooth_sprites;
+        return s;
       };
 
       def.$add_text = function(text, style) {
@@ -14033,6 +14035,8 @@ Opal.modules["gremlin/game"] = function(Opal) {
       };
 
       self.$protected();
+
+      self.$attr_accessor("smooth_sprites");
 
       def.$phaser_init = function() {
         var self = this;
@@ -14306,7 +14310,7 @@ Opal.modules["gremlin"] = function(Opal) {
   Opal.dynamic_require_severity = "error";
   var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $module = Opal.module, $hash2 = Opal.hash2;
 
-  Opal.add_stubs(['$require', '$<=', '$>=', '$+', '$*', '$-', '$new', '$patch_phaser_methods!', '$fetch', '$[]']);
+  Opal.add_stubs(['$require', '$<=', '$>=', '$+', '$*', '$-', '$new', '$patch_phaser_methods!', '$smooth_sprites=', '$fetch', '$[]']);
   self.$require("opal");
   self.$require("native");
   self.$require("gremlin/version");
@@ -14329,10 +14333,11 @@ Opal.modules["gremlin"] = function(Opal) {
     });
 
     Opal.defs(self, '$run_game', function(game_class, options) {
-      var $a, self = this, state = nil, width = nil, height = nil, renderer = nil, parent = nil, transparent = nil, antialias = nil, physics_config = nil;
+      var $a, $b, self = this, state = nil, width = nil, height = nil, renderer = nil, parent = nil, transparent = nil, antialias = nil, physics_config = nil;
 
       state = game_class.$new();
       state['$patch_phaser_methods!']();
+      (($a = [options.$fetch("smooth_sprites", true)]), $b = state, $b['$smooth_sprites='].apply($b, $a), $a[$a.length-1]);
       width = options.$fetch("width", undefined);
       height = options.$fetch("height", undefined);
       renderer = $scope.get('RENDERERS').$fetch(options.$fetch("renderer", "auto"));
@@ -14735,16 +14740,14 @@ if (cell_pos == null) cell_pos = nil;if (cell == null) cell = nil;
         cell.$sprite().$position()['$eset!'](cell_pos.$x()['$*']($scope.get('GRID_SIZE'))['$+']($scope.get('GRID_SIZE')['$/'](2)), cell_pos.$y()['$*']($scope.get('GRID_SIZE'))['$+']($scope.get('GRID_SIZE')['$/'](2)));
         cell.$sprite().$pivot()['$eset!'](cell.$sprite().$width()['$/'](2), cell.$sprite().$height()['$/'](2));
         cell.$sprite().$scale()['$eset!']($scope.get('GRID_SIZE')['$/'](cell.$sprite().$width()), $scope.get('GRID_SIZE')['$/'](cell.$sprite().$height()));
-        (($a = [$scope.get('ORIENTATION_ROTATIONS').$fetch(cell.$orientation())]), $b = cell.$sprite(), $b['$rotation='].apply($b, $a), $a[$a.length-1]);
-        return cell.$sprite().smoothed = false;}, TMP_25.$$s = self, TMP_25), $a).call($c);
+        return (($a = [$scope.get('ORIENTATION_ROTATIONS').$fetch(cell.$orientation())]), $b = cell.$sprite(), $b['$rotation='].apply($b, $a), $a[$a.length-1]);}, TMP_25.$$s = self, TMP_25), $a).call($c);
       all_entities = self.state.$entities()['$+']([self.state.$player(), self.state.$goal()]);
       ($a = ($d = all_entities).$each, $a.$$p = (TMP_26 = function(e){var self = TMP_26.$$s || this, $a, $b;
 if (e == null) e = nil;
       (($a = [self.$game().$add_sprite(e.$animation().$image_key()['$+'](e.$animation().$current_frame().$to_s()))]), $b = e, $b['$sprite='].apply($b, $a), $a[$a.length-1]);
         e.$sprite().$position()['$eset!'](e.$pos().$x()['$*']($scope.get('GRID_SIZE'))['$+']($scope.get('GRID_SIZE')['$/'](2)), e.$pos().$y()['$*']($scope.get('GRID_SIZE'))['$+']($scope.get('GRID_SIZE')['$/'](2)));
         e.$sprite().$pivot()['$eset!'](e.$sprite().$width()['$/'](2), e.$sprite().$height()['$/'](2));
-        e.$sprite().$scale()['$eset!']($scope.get('GRID_SIZE')['$/'](e.$sprite().$width()), $scope.get('GRID_SIZE')['$/'](e.$sprite().$height()));
-        return e.$sprite().smoothed = false;}, TMP_26.$$s = self, TMP_26), $a).call($d);
+        return e.$sprite().$scale()['$eset!']($scope.get('GRID_SIZE')['$/'](e.$sprite().$width()), $scope.get('GRID_SIZE')['$/'](e.$sprite().$height()));}, TMP_26.$$s = self, TMP_26), $a).call($d);
       ($a = ($e = ($f = ($g = all_entities).$sort_by, $f.$$p = "sort_order".$to_proc(), $f).call($g).$reverse()).$each, $a.$$p = (TMP_27 = function(e){var self = TMP_27.$$s || this;
 if (e == null) e = nil;
       return e.$sprite().$bring_to_top()}, TMP_27.$$s = self, TMP_27), $a).call($e);
@@ -14811,7 +14814,6 @@ if (entity == null) entity = nil;
         entity.$sprite().$position()['$eset!'](entity.$pos().$x()['$*']($scope.get('GRID_SIZE'))['$+']($scope.get('GRID_SIZE')['$/'](2)), entity.$pos().$y()['$*']($scope.get('GRID_SIZE'))['$+']($scope.get('GRID_SIZE')['$/'](2)));
         entity.$sprite().$pivot()['$eset!'](entity.$sprite().$width()['$/'](2), entity.$sprite().$height()['$/'](2));
         entity.$sprite().$scale()['$eset!']($scope.get('GRID_SIZE')['$/'](entity.$sprite().$width()), $scope.get('GRID_SIZE')['$/'](entity.$sprite().$height()));
-        entity.$sprite().smoothed = false;
         return self.state.$entities()['$<<'](entity);}, TMP_29.$$s = self, TMP_29), $a).call($c);
       return ($a = ($d = ai_results.$kills()).$each, $a.$$p = (TMP_30 = function(entity){var self = TMP_30.$$s || this, $a, $b;
 if (entity == null) entity = nil;
@@ -14991,6 +14993,6 @@ if (m == null) m = nil;
       return $scope.get('LevelScene').$new(0);
     }, nil) && 'button_down';
   })(self, $scope.get('Scene'));
-  g = $scope.get('Gremlin').$run_game($scope.get('GemmyGame'), $hash2(["width", "height"], {"width": (13)['$*']($scope.get('GRID_SIZE')), "height": (10)['$*']($scope.get('GRID_SIZE'))}));
+  g = $scope.get('Gremlin').$run_game($scope.get('GemmyGame'), $hash2(["width", "height", "smooth_sprites"], {"width": (13)['$*']($scope.get('GRID_SIZE')), "height": (10)['$*']($scope.get('GRID_SIZE')), "smooth_sprites": false}));
   return window.game = g;
 })(Opal);

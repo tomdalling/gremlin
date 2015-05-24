@@ -67,6 +67,7 @@ end
 Gremlin.run_game(
   Bunnymark,
   width: 800,
-  height: 300
+  height: 300,
+  smooth_sprites: false
 )
 

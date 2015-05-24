@@ -20,7 +20,9 @@ module Gremlin
     end
 
     def add_sprite(key)
-      `#{self}.add.sprite(0, 0, #{key})`
+      s = `#{self}.add.sprite(0, 0, #{key})`
+      `#{s}.smoothed = #{@smooth_sprites}`
+      s
     end
 
     def add_text(text, style={})
@@ -60,6 +62,7 @@ module Gremlin
     end
 
     protected
+      attr_accessor :smooth_sprites
 
       def phaser_init
         `#{self}.input.keyboard.addCallbacks(#{self}, #{self}['$_handle_key_down'])`

@@ -32,7 +32,6 @@ open http://localhost:8000/
  - Rethink the API for creating game objects (text, images, sprites, audio, etc).
    Who should be responsible for creation?
  - Do ENTITY_SORT_ORDER better in gemmy.
- - Opal API for sprite smoothing (global setting?)
  - Try remove NUM_LEVELS from gemmy
  - "You win" screen at end of gemmy
  - "Press any key to begin" on gemmy intro
