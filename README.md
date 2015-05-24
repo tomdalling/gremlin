@@ -21,9 +21,6 @@ open http://localhost:8000/
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
 
-[Opal]: http://opalrb.org/
-[Phaser]: http://phaser.io/
-
 ## TODO
 
  - Refactor asset loading so it matches Phaser loading (need to account for
@@ -31,6 +28,7 @@ open http://localhost:8000/
  - Rip out custom animation from gemmy and replace with Phaser animation
  - Opalize Phaser.Group
  - Opalize Phaser.Tween
+ - Opalize Phaser.Geometry?
  - Remove State class in favour of having a single state for every game
  - Rethink the API for creating game objects (text, images, sprites, audio, etc).
    Who should be responsible for creation?
@@ -45,3 +43,6 @@ open http://localhost:8000/
  - Refactor loading screen
  - API for mouse input
  - API for touch input
+
+[Opal]: http://opalrb.org/
+[Phaser]: http://phaser.io/
