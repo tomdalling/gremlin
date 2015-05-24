@@ -11,8 +11,10 @@ module Gremlin
     def shutdown; end
 
     # event callbacks
-    def key_down; end
-    #TODO: key_up, touch_down, touch_up, etc.
+    def key_down(key); end
+    def key_up(key); end
+    def pointer_down(pointer); end
+    def pointer_up(pointer); end
 
     # override to return an asset manifest
     def assets
@@ -65,7 +67,16 @@ module Gremlin
       attr_accessor :smooth_sprites
 
       def phaser_init
-        `#{self}.input.keyboard.addCallbacks(#{self}, #{self}['$_handle_key_down'])`
+        %x{
+          #{self}.input.keyboard.addCallbacks(
+            #{self},
+            #{self}['$_handle_key_down'],
+            #{self}['$_handle_key_up']
+          )
+
+          #{self}.input.onDown.add(#{self}['$_handle_pointer_down'], #{self})
+          #{self}.input.onUp.add(#{self}['$_handle_pointer_up'], #{self})
+        }
         init
       end
 
@@ -108,6 +119,22 @@ module Gremlin
 
       def _handle_key_down(event)
         key_down(`#{event}.keyCode`)
+      end
+
+      def _handle_key_up(event)
+        key_up(`#{event}.keyCode`)
+      end
+
+      def _handle_pointer_down(pointer, event)
+        pointer_down(pointer)
+      end
+
+      def _handle_pointer_up(pointer, event)
+        # phaser doesn't set `pointerUp` until AFTER the `onUp` signal has fired.
+        # no idea why, but this is a fix:
+        pointer.position_up.set!(pointer.position)
+
+        pointer_up(pointer)
       end
 
       def patch_phaser_methods!

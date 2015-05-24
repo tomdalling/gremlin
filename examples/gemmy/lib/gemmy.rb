@@ -43,8 +43,10 @@ class Scene
   def shutdown; end
   def update; end
   def draw; end
-  def button_down(button); end
-  def button_up(button); end
+  def key_down(key); end
+  def key_up(key); end
+  def pointer_down(pointer); end
+  def pointer_up(pointer); end
 end
 
 class GemmyGame < Gremlin::Game
@@ -86,12 +88,20 @@ class GemmyGame < Gremlin::Game
     transition_to_scene(@initial_scene)
   end
 
-  def key_down(button)
-    maybe_transition { @scene.button_down(button) }
+  def key_down(key)
+    maybe_transition { @scene.key_down(key) }
   end
 
-  def key_up(button)
-    maybe_transition { @scene.button_up(button) }
+  def key_up(key)
+    maybe_transition { @scene.key_up(key) }
+  end
+
+  def pointer_down(pointer)
+    maybe_transition { @scene.pointer_down(pointer) }
+  end
+
+  def pointer_up(pointer)
+    maybe_transition { @scene.pointer_up(pointer) }
   end
 
   def update
@@ -399,14 +409,14 @@ class LevelScene < Scene
     game.play_sound(:start)
   end
 
-  def button_down(button)
+  def key_down(key)
     if @state.movement_sets.size == 0
-      case button
-      when KEY_UP then move_player(0, -1)
-      when KEY_DOWN then move_player(0, 1)
-      when KEY_LEFT then move_player(-1, 0)
-      when KEY_RIGHT then move_player(1, 0)
-      when KEY_SPACEBAR then move_player(0, 0)
+      case key
+      when KEY_UP then move_player(:north)
+      when KEY_DOWN then move_player(:south)
+      when KEY_LEFT then move_player(:west)
+      when KEY_RIGHT then move_player(:east)
+      when KEY_SPACEBAR then move_player(:pass)
       when KEY_N then return LevelScene.new(next_level)
       when KEY_P then return LevelScene.new(next_level(-1))
       when KEY_Z then return LevelScene.new(@level_number)
@@ -414,11 +424,38 @@ class LevelScene < Scene
     end
   end
 
+  def pointer_up(pointer)
+    direction = swipe_direction(pointer)
+    move_player(direction) if direction
+  end
+
+  def swipe_direction(pointer)
+    delta = pointer.position_up - pointer.position_down
+    return nil if delta.length < 20 # more of a tap than a swipe
+
+    if delta.x.abs > delta.y.abs
+      delta.x > 0 ? :east : :west
+    else
+      delta.y > 0 ? :south : :north
+    end
+  end
+
   def next_level(diff = 1)
     (@level_number + diff) % NUM_LEVELS
   end
 
-  def move_player(dx, dy)
+  def move_player(direction)
+    dx, dy = begin
+      case direction
+      when :north then [0, -1]
+      when :east then [1, 0]
+      when :south then [0, 1]
+      when :west then [-1, 0]
+      when :pass then [0, 0]
+      else raise(ArgumentError, direction)
+      end
+    end
+
     move_set = MovementSet.new
 
     did_move = try_move(@state.player, dx, dy, move_set)
@@ -562,10 +599,14 @@ class EndLevelScene < Scene
     @next_level = next_level
   end
 
-  def button_down(button)
-    case button
+  def key_down(key)
+    case key
     when KEY_SPACEBAR then LevelScene.new(@next_level)
     end
+  end
+
+  def pointer_up(pointer)
+    LevelScene.new(@next_level)
   end
 
   def startup
@@ -574,7 +615,7 @@ class EndLevelScene < Scene
     top = game.add_text(@text, fill: @color)
     top.position.eset!(screen.x/2 - top.width/2, screen.y/2)
 
-    bot = game.add_text("Press space to #{@action_text}", fill: @color)
+    bot = game.add_text("Press space or tap to #{@action_text}", fill: @color)
     bot.position.eset!(screen.x/2 - bot.width/2, screen.y/2 + 80)
   end
 end
@@ -584,7 +625,11 @@ class IntroScene < Scene
     @background = game.add_sprite(:intro_background)
   end
 
-  def button_down(button)
+  def key_down(key)
+    LevelScene.new(0)
+  end
+
+  def pointer_up(pointer)
     LevelScene.new(0)
   end
 end
