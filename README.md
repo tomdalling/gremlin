@@ -23,24 +23,27 @@ open http://localhost:8000/
 
 ## TODO
 
+Gremlin:
  - Refactor asset loading so it matches Phaser loading (need to account for
    spritesheets/atlases)
- - Rip out custom animation from gemmy and replace with Phaser animation
  - Opalize Phaser.Group
  - Opalize Phaser.Tween
  - Opalize Phaser.Geometry?
- - Rethink the API for creating game objects (text, images, sprites, audio, etc).
-   Who should be responsible for creation?
- - Do ENTITY_SORT_ORDER better in gemmy.
- - Try remove NUM_LEVELS from gemmy
- - "You win" screen at end of gemmy
- - "Press any key to begin" on gemmy intro
- - Investigate whether played sounds need to be `destroy`'d, or if they can just be GC'd
- - Opal API for audio instances.
- - Responsive canvas resizing
- - Refactor loading screen
  - Opal API for mouse input
  - Opal API for touch input
+ - Opal API for audio instances.
+ - Rethink the API for creating game objects (text, images, sprites, audio, etc).
+   Who should be responsible for creation?
+ - Investigate whether played sounds need to be `destroy`'d, or if they can just be GC'd
+ - Responsive canvas resizing
+ - Refactor loading screen
+
+Gemmy:
+ - "You win" screen at end
+ - "Press any key to begin" on intro
+ - Do ENTITY_SORT_ORDER better
+ - Try remove NUM_LEVELS and just check text cache instead
+ - Rip out custom animation and replace with Phaser animation
 
 [Opal]: http://opalrb.org/
 [Phaser]: http://phaser.io/
