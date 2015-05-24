@@ -1,27 +1,23 @@
 require 'gremlin'
 
-GRAVITY = 200 # pixels/sec^2
+class Bunnymark < Gremlin::Game
+  GRAVITY = 200 # pixels/sec^2
+  Bunny = Struct.new(:sprite, :velocity)
 
-Bunny = Struct.new(:sprite, :velocity)
-
-class MyState < Gremlin::State
   def assets
-    {
-      image: [:bunny]
-    }
+    { image: [:bunny] }
   end
 
   def create
-    super
+    enabled_advanced_timing!
     @bunnies = []
     @fps = add_text('', fill: :white)
     @fps.position.eset!(20, 20)
-    enabled_advanced_timing!
   end
 
-  def update(*args)
+  def update
     dt = delta_time
-    gs = game_size
+    gs = canvas_size
     @bunnies.each do |t|
       # get some vars
       vel = t.velocity
@@ -68,6 +64,9 @@ class MyState < Gremlin::State
   end
 end
 
-state = MyState.new
-game = Gremlin::Game.new(size: [800, 300], state: state)
+Gremlin.run_game(
+  Bunnymark,
+  width: 800,
+  height: 300
+)
 

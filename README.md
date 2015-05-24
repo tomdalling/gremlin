@@ -29,7 +29,6 @@ open http://localhost:8000/
  - Opalize Phaser.Group
  - Opalize Phaser.Tween
  - Opalize Phaser.Geometry?
- - Remove State class in favour of having a single state for every game
  - Rethink the API for creating game objects (text, images, sprites, audio, etc).
    Who should be responsible for creation?
  - Do ENTITY_SORT_ORDER better in gemmy.
@@ -41,8 +40,8 @@ open http://localhost:8000/
  - Opal API for audio instances.
  - Responsive canvas resizing
  - Refactor loading screen
- - API for mouse input
- - API for touch input
+ - Opal API for mouse input
+ - Opal API for touch input
 
 [Opal]: http://opalrb.org/
 [Phaser]: http://phaser.io/

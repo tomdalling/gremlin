@@ -47,19 +47,42 @@ class Scene
   def button_up(button); end
 end
 
-class GemmyGame < Gremlin::State
-  def initialize(scene, assets)
-    super()
-    @initial_scene = scene
-    @assets = assets
+class GemmyGame < Gremlin::Game
+  def initialize
+    @initial_scene = IntroScene.new
+    #@initial_scene = LevelScene.new(5)
   end
 
   def assets
-    @assets
+   {
+      image: [
+        :intro_background,
+        [:dirtball, 1],
+        [:bullet, 1],
+        [:player, 3],
+        [:chaser, 3],
+        [:wall, 4],
+        [:goal, 3],
+        [:floor, 4],
+        [:shooter, 5],
+        [:teleporter, 4],
+      ],
+
+      text: [
+        [:level, NUM_LEVELS],
+      ],
+
+      audio: [
+        :lose,
+        :move,
+        :start,
+        :win,
+        [:music, 'mp3'],
+      ],
+    }
   end
 
   def create
-    super
     transition_to_scene(@initial_scene)
   end
 
@@ -549,7 +572,7 @@ class EndLevelScene < Scene
   end
 
   def startup
-    screen = game.game_size
+    screen = game.canvas_size
 
     top = game.add_text(@text, fill: @color)
     top.position.eset!(screen.x/2 - top.width/2, screen.y/2)
@@ -562,7 +585,6 @@ end
 class IntroScene < Scene
   def startup
     @background = game.add_sprite(:intro_background)
-    `#{game}.stage.smoothed = false;`
   end
 
   def button_down(button)
@@ -570,35 +592,9 @@ class IntroScene < Scene
   end
 end
 
-ASSETS = {
-  image: [
-    :intro_background,
-    [:dirtball, 1],
-    [:bullet, 1],
-    [:player, 3],
-    [:chaser, 3],
-    [:wall, 4],
-    [:goal, 3],
-    [:floor, 4],
-    [:shooter, 5],
-    [:teleporter, 4],
-  ],
-
-  text: [
-    [:level, NUM_LEVELS],
-  ],
-
-  audio: [
-    :lose,
-    :move,
-    :start,
-    :win,
-    [:music, 'mp3'],
-  ],
-}
-
-starting_scene = IntroScene.new
-#starting_scene = LevelScene.new(5)
-state = GemmyGame.new(starting_scene, ASSETS)
-game = Gremlin::Game.new(size: [13*GRID_SIZE, 10*GRID_SIZE], state: state)
-`window.game = game`
+g = Gremlin.run_game(
+  GemmyGame,
+  width: 13*GRID_SIZE,
+  height: 10*GRID_SIZE
+)
+`window.game = #{g}`
