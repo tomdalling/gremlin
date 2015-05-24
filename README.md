@@ -37,7 +37,6 @@ open http://localhost:8000/
  - Completely remove naghavi, moving functionality into gremlin
  - Do ENTITY_SORT_ORDER better in gemmy.
  - Opal API for sprite smoothing (global setting?)
- - 2D vector API? Expand upon existing PIXI.Point class?
  - Try remove NUM_LEVELS from gemmy
  - "You win" screen at end of gemmy
  - "Press any key to begin" on gemmy intro

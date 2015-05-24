@@ -39,7 +39,7 @@ module Gremlin
 
         unless @_loading_text
           @_loading_text = add_text("Loading...", fill: 'white')
-          @_loading_text.position.set!(15, 15)
+          @_loading_text.position.eset!(15, 15)
           @_loading_bar = `#{self}.add.graphics(0,0)`
           `#{@_loading_bar}.beginFill(0xFFFFFF, 1)`
           `#{@_loading_bar}.drawRect(0, 0, 1, 10)`
@@ -47,7 +47,7 @@ module Gremlin
         end
 
         progress = `#{self}.load.progress / 100`
-        @_loading_bar.scale.set!(progress * `#{self}.game.width`, 1)
+        @_loading_bar.scale.eset!(progress * `#{self}.game.width`, 1)
       end
 
       DEFAULT_EXTENSIONS = {
@@ -119,7 +119,7 @@ module Gremlin
       end
 
       def game_size
-        Point[`#{self}.game.width`, `#{self}.game.height`]
+        Vec2[`#{self}.game.width`, `#{self}.game.height`]
       end
 
       def delta_time

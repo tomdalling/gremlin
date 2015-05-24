@@ -37,21 +37,43 @@ ANIMATIONS_FRAMES = {
   teleporter: 4,
 }
 
-Animation = Naghavi::DefStruct.new {{
+module DefStruct
+  def self.new(&defaults_block)
+    defaults = defaults_block.call
+    klass = Struct.new(*defaults.keys) do
+      def initialize(attrs={})
+        defaults = self.class.const_get(:DEFAULTS_BLOCK).call
+        defaults.merge!(attrs).each do |k, v|
+          self[k] = v
+        end
+      end
+
+      def self.reopen(&block)
+        self.class_exec(&block)
+        self
+      end
+    end
+
+    klass.const_set(:DEFAULTS_BLOCK, defaults_block)
+    klass
+  end
+end
+
+Animation = DefStruct.new {{
   image_key: nil,
   current_frame: 0,
   secs_per_frame: 0.3,
   secs_elapsed_this_frame: 0,
 }}
 
-Entity = Naghavi::DefStruct.new {{
+Entity = DefStruct.new {{
   sprite: nil,
   sort_order: 0,
-  pos: [0, 0],
-  pos_fraction: [0, 0],
+  pos: Vec2[0, 0],
+  pos_fraction: Vec2[0, 0],
   ai: nil,
-  color: Naghavi::Color::WHITE,
-  tint: Naghavi::Color::WHITE,
+  color: 'white',
+  tint: 'white',
   image_key: nil,
   image_frame: 0,
   animation: nil,
@@ -63,17 +85,17 @@ Entity = Naghavi::DefStruct.new {{
   deadly: true,
 }}
 
-Movement = Naghavi::DefStruct.new {{
+Movement = DefStruct.new {{
   entity: nil,
-  from: [0, 0],
+  from: Vec2[0, 0],
 }}
 
-MovementSet = Naghavi::DefStruct.new {{
+MovementSet = DefStruct.new {{
   movements: [],
   progress: 0.0,
 }}
 
-GameState = Naghavi::DefStruct.new {{
+GameState = DefStruct.new {{
   level: nil,
   player: nil,
   goal: nil,
@@ -81,20 +103,20 @@ GameState = Naghavi::DefStruct.new {{
   movement_sets: [],
 }}
 
-AiResults = Naghavi::DefStruct.new {{
+AiResults = DefStruct.new {{
   moves: [],
   spawns: [],
   kills: [],
 }}
 
-Cell = Naghavi::DefStruct.new {{
+Cell = DefStruct.new {{
   type: :none,
   image_frame: 0,
   orientation: :north,
   sprite: nil,
 }}
 
-Level = Naghavi::DefStruct.new {{
+Level = DefStruct.new {{
   rows: [],
   entities: [],
 }}.reopen do
@@ -110,7 +132,7 @@ Level = Naghavi::DefStruct.new {{
   def each_cell
     rows.each_with_index do |row, row_idx|
       row.each_with_index do |cell, col_idx|
-        yield([col_idx, row_idx], cell)
+        yield(Vec2[col_idx, row_idx], cell)
       end
     end
   end
@@ -146,14 +168,14 @@ class ChaserAi
   def think(chaser, game)
     e = chaser.pos
     p = game.player.pos
-    dist = Naghavi.distance(e.x, e.y, p.x, p.y)
+    dist = e.distance_to(p)
 
     moves = []
     if dist < 3.5
-      moves << [ 1,  0] if e.x < p.x
-      moves << [-1,  0] if e.x > p.x
-      moves << [ 0, -1] if e.y > p.y
-      moves << [ 0,  1] if e.y < p.y
+      moves << Vec2[ 1,  0] if e.x < p.x
+      moves << Vec2[-1,  0] if e.x > p.x
+      moves << Vec2[ 0, -1] if e.y > p.y
+      moves << Vec2[ 0,  1] if e.y < p.y
     end
 
     AiResults.new(moves: moves)
@@ -173,8 +195,8 @@ class ShooterAi
     s = shooter.pos
     projectile_vel = begin
       case
-      when p.x == s.x then [0, (p.y < s.y ? -1 : 1)]
-      when p.y == s.y then [(p.x < s.x ? -1 : 1), 0]
+      when p.x == s.x then Vec2[0, (p.y < s.y ? -1 : 1)]
+      when p.y == s.y then Vec2[(p.x < s.x ? -1 : 1), 0]
       else nil
       end
     end
@@ -199,8 +221,8 @@ class ProjectileAi
   end
 
   def think(projectile, game)
-    new_pos = projectile.pos.vadd(@velocity)
-    if game.level.can_move_to?(*new_pos)
+    new_pos = projectile.pos + @velocity
+    if game.level.can_move_to?(*new_pos.to_a)
       kills = game.entities.select { |e| e.pos == new_pos }
       kills << projectile if kills.size > 0
       AiResults.new({
@@ -263,9 +285,9 @@ class LevelScene < Naghavi::Scene
       cell.orientation = [:north, :south, :east, :west].sample
 
       cell.sprite = w.add_sprite(cell.type + cell.image_frame.to_s)
-      cell.sprite.position.set!(cell_pos.x * GRID_SIZE + GRID_SIZE/2, cell_pos.y * GRID_SIZE + GRID_SIZE/2)
-      cell.sprite.pivot.set!(cell.sprite.width / 2, cell.sprite.height / 2)
-      cell.sprite.scale.set!(GRID_SIZE/cell.sprite.width, GRID_SIZE/cell.sprite.height)
+      cell.sprite.position.eset!(cell_pos.x * GRID_SIZE + GRID_SIZE/2, cell_pos.y * GRID_SIZE + GRID_SIZE/2)
+      cell.sprite.pivot.eset!(cell.sprite.width / 2, cell.sprite.height / 2)
+      cell.sprite.scale.eset!(GRID_SIZE/cell.sprite.width, GRID_SIZE/cell.sprite.height)
       cell.sprite.rotation = ORIENTATION_ROTATIONS.fetch(cell.orientation)
       `#{cell.sprite}.smoothed = false`
     end
@@ -274,9 +296,9 @@ class LevelScene < Naghavi::Scene
 
     all_entities.each do |e|
       e.sprite = w.add_sprite(e.animation.image_key + e.animation.current_frame.to_s)
-      e.sprite.position.set!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
-      e.sprite.pivot.set!(e.sprite.width/2, e.sprite.height/2)
-      e.sprite.scale.set!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
+      e.sprite.position.eset!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
+      e.sprite.pivot.eset!(e.sprite.width/2, e.sprite.height/2)
+      e.sprite.scale.eset!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
       `#{e.sprite}.smoothed = false`
     end
 
@@ -286,7 +308,7 @@ class LevelScene < Naghavi::Scene
       .each{ |e| e.sprite.bring_to_top }
 
     @level_number_text = w.add_text("Level #{@level_number + 1}", fill: 'white')
-    @level_number_text.position.set!(15, 15)
+    @level_number_text.position.eset!(15, 15)
 
     w.play_sound(:start)
   end
@@ -337,9 +359,9 @@ class LevelScene < Naghavi::Scene
     end
     ai_results.spawns.each do |entity|
       entity.sprite = w.add_sprite(entity.animation.image_key + entity.animation.current_frame.to_s)
-      entity.sprite.position.set!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
-      entity.sprite.pivot.set!(entity.sprite.width/2, entity.sprite.height/2)
-      entity.sprite.scale.set!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
+      entity.sprite.position.eset!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
+      entity.sprite.pivot.eset!(entity.sprite.width/2, entity.sprite.height/2)
+      entity.sprite.scale.eset!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
       `#{entity.sprite}.smoothed = false`
       @game.entities << entity
     end
@@ -353,11 +375,11 @@ class LevelScene < Naghavi::Scene
     return if x < 0 || x >= @game.level.column_count
 
     if @game.level.can_move_to?(x, y)
-      existing = @game.entities.find { |e| e.pushable && e.pos == [x, y] }
+      existing = @game.entities.find { |e| e.pushable && e.pos.eeql?(x, y) }
       if !existing || try_move(existing, dx, dy, move_set)
-        entity.pos.vset!([x, y])
+        entity.pos.eset!(x, y)
         entity.orientation = orientation_for_movement(dx, dy)
-        move_set.movements << Movement.new(entity: entity, from: [-dx, -dy])
+        move_set.movements << Movement.new(entity: entity, from: Vec2[-dx, -dy])
         true
       else
         false
@@ -380,7 +402,7 @@ class LevelScene < Naghavi::Scene
     # TODO: refactor
     # sets every attribute on the sprite
     (@game.entities + [@game.player]).each do |e|
-      e.sprite.position.set!((e.pos.x + e.pos_fraction.x) * GRID_SIZE + GRID_SIZE/2,
+      e.sprite.position.eset!((e.pos.x + e.pos_fraction.x) * GRID_SIZE + GRID_SIZE/2,
                              (e.pos.y + e.pos_fraction.y) * GRID_SIZE + GRID_SIZE/2)
       e.sprite.rotation = ORIENTATION_ROTATIONS.fetch(e.orientation)
     end
@@ -389,10 +411,10 @@ class LevelScene < Naghavi::Scene
 
     if @game.player.pos == @game.goal.pos
       w.play_sound(:win)
-      return EndLevelScene.new('You win!', Naghavi::Color::YELLOW, 'continue to next level', next_level)
+      return EndLevelScene.new('You win!', 'yellow', 'continue to next level', next_level)
     elsif @game.entities.any? { |e| e.deadly && e.pos == @game.player.pos }
       w.play_sound(:lose)
-      return EndLevelScene.new('You lose', Naghavi::Color::RED, 'try again', @level_number)
+      return EndLevelScene.new('You lose', 'red', 'try again', @level_number)
     end
 
     teleporter = @game.entities.find { |e| e.teleport_pair && e.pos == @game.player.pos }
@@ -435,7 +457,8 @@ class LevelScene < Naghavi::Scene
 
       move_set.progress += (w.delta_time / MOVE_INTERVAL)
       move_set.movements.each do |m|
-        m.entity.pos_fraction.vset!(Naghavi.vlerp(m.from, [0,0], move_set.progress))
+        fraction = m.from.lerp_to(Vec2[0,0], move_set.progress)
+        m.entity.pos_fraction.set!(fraction)
       end
 
       @game.movement_sets.shift if move_set.progress >= 1.0
@@ -447,7 +470,7 @@ class LevelScene < Naghavi::Scene
 end
 
 class EndLevelScene < Naghavi::Scene
-  def initialize(text, color = Naghavi::Color::WHITE, action_text = 'continue', next_level = 1)
+  def initialize(text, color = 'white', action_text = 'continue', next_level = 1)
     @text = text
     @color = color
     @action_text = action_text
@@ -464,10 +487,10 @@ class EndLevelScene < Naghavi::Scene
     screen = w.game_size
 
     top = w.add_text(@text, fill: @color)
-    top.position.set!(screen.x/2 - top.width/2, screen.y/2)
+    top.position.eset!(screen.x/2 - top.width/2, screen.y/2)
 
     bot = w.add_text("Press space to #{@action_text}", fill: @color)
-    bot.position.set!(screen.x/2 - bot.width/2, screen.y/2 + 80)
+    bot.position.eset!(screen.x/2 - bot.width/2, screen.y/2 + 80)
   end
 end
 

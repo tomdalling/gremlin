@@ -1,13 +1,6 @@
 require 'gremlin'
 
 module Naghavi
-  module Color
-    #TODO: proper colors here
-    WHITE = 'white'
-    YELLOW = 'yellow'
-    RED = 'red'
-  end
-
   class Scene
     attr_accessor :window
     alias :w :window
@@ -77,100 +70,4 @@ module Naghavi
       end
   end
 
-  module DefStruct
-    def self.new(&defaults_block)
-      defaults = defaults_block.call
-      klass = Struct.new(*defaults.keys) do
-        def initialize(attrs={})
-          defaults = self.class.const_get(:DEFAULTS_BLOCK).call
-          defaults.merge!(attrs).each do |k, v|
-            self[k] = v
-          end
-        end
-
-        def self.reopen(&block)
-          self.class_exec(&block)
-          self
-        end
-      end
-
-      klass.const_set(:DEFAULTS_BLOCK, defaults_block)
-      klass
-    end
-  end
-
-  def self.vlerp(from, to, fraction)
-    if fraction <= 0.0
-      from
-    elsif fraction >= 1.0
-      to
-    else
-      [lerp(from.x, to.x, fraction),
-       lerp(from.y, to.y, fraction)]
-    end
-  end
-
-  def self.lerp(start, final, progress)
-    if progress <= 0.0
-      start
-    elsif progress >= 1.0
-      final
-    else
-      start + progress*(final - start)
-    end
-  end
-
-  def self.distance(x1, y1, x2, y2)
-    `Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))`
-  end
-end
-
-class Array
-  def vadd(vec)
-    self.dup.vadd!(vec)
-  end
-
-  def vadd!(vec)
-    (0...vec.size).each do |idx|
-      self[idx] = self[idx] + vec[idx]
-    end
-    self
-  end
-
-  def vmul(scalar)
-    self.dup.vmul!(scalar)
-  end
-
-  def vmul!(scalar)
-    self.map! do |val|
-      scalar * val
-    end
-    self
-  end
-
-  def vset!(vec)
-    (0...vec.size).each do |idx|
-      self[idx] = vec[idx]
-    end
-    self
-  end
-
-  def vinterp_to(vec, factor)
-  end
-
-  def x
-    self[0]
-  end
-
-  def x=(x)
-    self[0] = x
-  end
-
-  def y
-    self[1]
-  end
-
-  def y=(y)
-    self[1] = y
-  end
 end

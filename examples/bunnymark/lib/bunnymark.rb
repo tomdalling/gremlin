@@ -15,7 +15,7 @@ class MyState < Gremlin::State
     super
     @bunnies = []
     @fps = add_text('', fill: :white)
-    @fps.position.set!(20, 20)
+    @fps.position.eset!(20, 20)
     enabled_advanced_timing!
   end
 
@@ -26,12 +26,11 @@ class MyState < Gremlin::State
       # get some vars
       vel = t.velocity
       pos = t.sprite.position
-      size = Gremlin::Point[t.sprite.width, t.sprite.height]
+      size = t.sprite.size
 
       # apply gravity and velocity
-      vel.y += dt*GRAVITY
-      pos.x += dt*vel.x
-      pos.y += dt*vel.y
+      vel.eadd!(0, dt*GRAVITY)
+      pos.add!(dt*vel)
 
       # bounce off floor
       max_y = pos.y + size.y
@@ -57,7 +56,7 @@ class MyState < Gremlin::State
     if key_down?(Gremlin::Keyboard::KEY_SPACEBAR)
       5.times do
         t = Bunny.new
-        t.velocity = Gremlin::Point[rand(-200..200), 0]
+        t.velocity = Gremlin::Vec2[rand(-200..200), 0]
         t.sprite = add_sprite(:bunny)
         t.sprite.position.x = rand(800)
         @bunnies << t
