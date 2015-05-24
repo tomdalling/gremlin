@@ -34,7 +34,6 @@ open http://localhost:8000/
  - Remove State class in favour of having a single state for every game
  - Rethink the API for creating game objects (text, images, sprites, audio, etc).
    Who should be responsible for creation?
- - Completely remove naghavi, moving functionality into gremlin
  - Do ENTITY_SORT_ORDER better in gemmy.
  - Opal API for sprite smoothing (global setting?)
  - Try remove NUM_LEVELS from gemmy

@@ -1,4 +1,4 @@
-require 'naghavi'
+require 'gremlin'
 include Gremlin::Keyboard
 
 NUM_LEVELS = 9
@@ -36,6 +36,71 @@ ANIMATIONS_FRAMES = {
   bullet: 1,
   teleporter: 4,
 }
+
+class Scene
+  attr_accessor :game
+  def startup; end
+  def shutdown; end
+  def update; end
+  def draw; end
+  def button_down(button); end
+  def button_up(button); end
+end
+
+class GemmyGame < Gremlin::State
+  def initialize(scene, assets)
+    super()
+    @initial_scene = scene
+    @assets = assets
+  end
+
+  def assets
+    @assets
+  end
+
+  def create
+    super
+    transition_to_scene(@initial_scene)
+  end
+
+  def key_down(button)
+    maybe_transition { @scene.button_down(button) }
+  end
+
+  def key_up(button)
+    maybe_transition { @scene.button_up(button) }
+  end
+
+  def update
+    maybe_transition { @scene.update }
+  end
+
+  def draw
+    @scene.draw
+  end
+
+  private
+
+    def maybe_transition
+      transition_to_scene(yield)
+    end
+
+    def transition_to_scene(scene)
+      while scene && !native?(scene) && scene.is_a?(Scene)
+        if @scene
+          @scene.shutdown
+          @scene.game = nil
+        end
+
+        # clear world, but don't clear cache
+        `#{self}.game.world.shutdown()`
+
+        @scene = scene
+        @scene.game = self
+        scene = @scene.startup
+      end
+    end
+end
 
 module DefStruct
   def self.new(&defaults_block)
@@ -235,7 +300,7 @@ class ProjectileAi
   end
 end
 
-class LevelScene < Naghavi::Scene
+class LevelScene < Scene
   ENTITY_SORT_ORDER = [:dirtball, :enemy, :player]
 
   def initialize(level_number)
@@ -247,44 +312,44 @@ class LevelScene < Naghavi::Scene
   end
 
   def startup
-    @@song = w.play_sound(:music, true) unless @@song
+    @@song = game.play_sound(:music, true) unless @@song
 
     #TODO: show final "winner" screen when no more levels available
     # just loops back to level 1 at the moment
-    level_text = w.get_text("level#{@level_number}")
+    level_text = game.get_text("level#{@level_number}")
 
-    @game = GameState.new(level: Level.from_text(level_text))
+    @state = GameState.new(level: Level.from_text(level_text))
 
-    @game.entities ||= []
-    @game.level.each_cell do |pos, cell|
+    @state.entities ||= []
+    @state.level.each_cell do |pos, cell|
       case cell.type
       when :player
-        @game.player = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :player), sort_order: so(:player))
+        @state.player = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :player), sort_order: so(:player))
         cell.type = :floor
       when :enemy
-        @game.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(image_key: :chaser), sort_order: so(:enemy))
+        @state.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(image_key: :chaser), sort_order: so(:enemy))
         cell.type = :floor
       when :shooter
-        @game.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(image_key: :shooter), sort_order: so(:enemy))
+        @state.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(image_key: :shooter), sort_order: so(:enemy))
         cell.type = :floor
       when :goal
-        @game.goal = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :goal, secs_per_frame: 0.2), sort_order: so(:goal))
+        @state.goal = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :goal, secs_per_frame: 0.2), sort_order: so(:goal))
         cell.type = :floor
       when :dirtball
-        @game.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :dirtball), pushable: true, sort_order: so(:dirtball))
+        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :dirtball), pushable: true, sort_order: so(:dirtball))
         cell.type = :floor
       when :teleporter
-        @game.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :teleporter), teleport_pair: 1, deadly: false, sort_order: so(:teleporter))
+        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :teleporter), teleport_pair: 1, deadly: false, sort_order: so(:teleporter))
         cell.type = :floor
       end
     end
 
-    @game.level.each_cell do |cell_pos, cell|
+    @state.level.each_cell do |cell_pos, cell|
       num_frames = ANIMATIONS_FRAMES[cell.type]
       cell.image_frame = rand(0...num_frames)
       cell.orientation = [:north, :south, :east, :west].sample
 
-      cell.sprite = w.add_sprite(cell.type + cell.image_frame.to_s)
+      cell.sprite = game.add_sprite(cell.type + cell.image_frame.to_s)
       cell.sprite.position.eset!(cell_pos.x * GRID_SIZE + GRID_SIZE/2, cell_pos.y * GRID_SIZE + GRID_SIZE/2)
       cell.sprite.pivot.eset!(cell.sprite.width / 2, cell.sprite.height / 2)
       cell.sprite.scale.eset!(GRID_SIZE/cell.sprite.width, GRID_SIZE/cell.sprite.height)
@@ -292,10 +357,10 @@ class LevelScene < Naghavi::Scene
       `#{cell.sprite}.smoothed = false`
     end
 
-    all_entities = @game.entities + [@game.player, @game.goal]
+    all_entities = @state.entities + [@state.player, @state.goal]
 
     all_entities.each do |e|
-      e.sprite = w.add_sprite(e.animation.image_key + e.animation.current_frame.to_s)
+      e.sprite = game.add_sprite(e.animation.image_key + e.animation.current_frame.to_s)
       e.sprite.position.eset!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
       e.sprite.pivot.eset!(e.sprite.width/2, e.sprite.height/2)
       e.sprite.scale.eset!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
@@ -307,14 +372,14 @@ class LevelScene < Naghavi::Scene
       .reverse
       .each{ |e| e.sprite.bring_to_top }
 
-    @level_number_text = w.add_text("Level #{@level_number + 1}", fill: 'white')
+    @level_number_text = game.add_text("Level #{@level_number + 1}", fill: 'white')
     @level_number_text.position.eset!(15, 15)
 
-    w.play_sound(:start)
+    game.play_sound(:start)
   end
 
   def button_down(button)
-    if @game.movement_sets.size == 0
+    if @state.movement_sets.size == 0
       case button
       when KEY_UP then move_player(0, -1)
       when KEY_DOWN then move_player(0, 1)
@@ -335,22 +400,22 @@ class LevelScene < Naghavi::Scene
   def move_player(dx, dy)
     move_set = MovementSet.new
 
-    did_move = try_move(@game.player, dx, dy, move_set)
-    @game.player.just_teleported = false if did_move
+    did_move = try_move(@state.player, dx, dy, move_set)
+    @state.player.just_teleported = false if did_move
 
     # explicit idx looping necessary because AI can spawn new entities during iteration
     idx = 0
-    while idx < @game.entities.size
-      enemy = @game.entities[idx]
+    while idx < @state.entities.size
+      enemy = @state.entities[idx]
       if enemy.ai
-        ai_results = enemy.ai.think(enemy, @game)
+        ai_results = enemy.ai.think(enemy, @state)
         apply_ai(enemy, ai_results, move_set) if ai_results
       end
 
       idx += 1
     end
 
-    @game.movement_sets << move_set if move_set.movements.size > 0
+    @state.movement_sets << move_set if move_set.movements.size > 0
   end
 
   def apply_ai(entity, ai_results, move_set)
@@ -358,12 +423,12 @@ class LevelScene < Naghavi::Scene
       break if try_move(entity, move.x, move.y, move_set)
     end
     ai_results.spawns.each do |entity|
-      entity.sprite = w.add_sprite(entity.animation.image_key + entity.animation.current_frame.to_s)
+      entity.sprite = game.add_sprite(entity.animation.image_key + entity.animation.current_frame.to_s)
       entity.sprite.position.eset!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
       entity.sprite.pivot.eset!(entity.sprite.width/2, entity.sprite.height/2)
       entity.sprite.scale.eset!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
       `#{entity.sprite}.smoothed = false`
-      @game.entities << entity
+      @state.entities << entity
     end
     ai_results.kills.each { |entity| entity.alive = false }
   end
@@ -371,11 +436,11 @@ class LevelScene < Naghavi::Scene
   def try_move(entity, dx, dy, move_set)
     x = entity.pos.x + dx
     y = entity.pos.y + dy
-    return if y < 0 || y >= @game.level.row_count
-    return if x < 0 || x >= @game.level.column_count
+    return if y < 0 || y >= @state.level.row_count
+    return if x < 0 || x >= @state.level.column_count
 
-    if @game.level.can_move_to?(x, y)
-      existing = @game.entities.find { |e| e.pushable && e.pos.eeql?(x, y) }
+    if @state.level.can_move_to?(x, y)
+      existing = @state.entities.find { |e| e.pushable && e.pos.eeql?(x, y) }
       if !existing || try_move(existing, dx, dy, move_set)
         entity.pos.eset!(x, y)
         entity.orientation = orientation_for_movement(dx, dy)
@@ -390,18 +455,18 @@ class LevelScene < Naghavi::Scene
   end
 
   def update
-    update_animation(@game.player)
-    update_animation(@game.goal)
-    @game.entities.each do |entity|
+    update_animation(@state.player)
+    update_animation(@state.goal)
+    @state.entities.each do |entity|
       update_animation(entity) if entity.animation
     end
 
     did_move = update_next_movement
-    @game.player.animation.secs_per_frame = did_move ? 0.02 : 0.3
+    @state.player.animation.secs_per_frame = did_move ? 0.02 : 0.3
 
     # TODO: refactor
     # sets every attribute on the sprite
-    (@game.entities + [@game.player]).each do |e|
+    (@state.entities + [@state.player]).each do |e|
       e.sprite.position.eset!((e.pos.x + e.pos_fraction.x) * GRID_SIZE + GRID_SIZE/2,
                              (e.pos.y + e.pos_fraction.y) * GRID_SIZE + GRID_SIZE/2)
       e.sprite.rotation = ORIENTATION_ROTATIONS.fetch(e.orientation)
@@ -409,22 +474,22 @@ class LevelScene < Naghavi::Scene
 
     return if did_move #no updating while moving
 
-    if @game.player.pos == @game.goal.pos
-      w.play_sound(:win)
+    if @state.player.pos == @state.goal.pos
+      game.play_sound(:win)
       return EndLevelScene.new('You win!', 'yellow', 'continue to next level', next_level)
-    elsif @game.entities.any? { |e| e.deadly && e.pos == @game.player.pos }
-      w.play_sound(:lose)
+    elsif @state.entities.any? { |e| e.deadly && e.pos == @state.player.pos }
+      game.play_sound(:lose)
       return EndLevelScene.new('You lose', 'red', 'try again', @level_number)
     end
 
-    teleporter = @game.entities.find { |e| e.teleport_pair && e.pos == @game.player.pos }
-    if teleporter && !@game.player.just_teleported
-      @game.player.just_teleported = true
-      other_teleporter = @game.entities.find { |e| e.teleport_pair == teleporter.teleport_pair && e != teleporter }
-      @game.player.pos = other_teleporter.pos.dup
+    teleporter = @state.entities.find { |e| e.teleport_pair && e.pos == @state.player.pos }
+    if teleporter && !@state.player.just_teleported
+      @state.player.just_teleported = true
+      other_teleporter = @state.entities.find { |e| e.teleport_pair == teleporter.teleport_pair && e != teleporter }
+      @state.player.pos = other_teleporter.pos.dup
     end
 
-    @game.entities.select! do |e|
+    @state.entities.select! do |e|
       if e.alive
         true
       else
@@ -437,7 +502,7 @@ class LevelScene < Naghavi::Scene
 
   def update_animation(entity)
     anim = entity.animation
-    anim.secs_elapsed_this_frame += w.delta_time
+    anim.secs_elapsed_this_frame += game.delta_time
     old_frame = anim.current_frame
     while anim.secs_elapsed_this_frame >= anim.secs_per_frame
       anim.secs_elapsed_this_frame -= anim.secs_per_frame
@@ -451,17 +516,17 @@ class LevelScene < Naghavi::Scene
   end
 
   def update_next_movement
-    move_set = @game.movement_sets.first
+    move_set = @state.movement_sets.first
     if move_set
-      w.play_sound(:move) if move_set.progress <= 0.0
+      game.play_sound(:move) if move_set.progress <= 0.0
 
-      move_set.progress += (w.delta_time / MOVE_INTERVAL)
+      move_set.progress += (game.delta_time / MOVE_INTERVAL)
       move_set.movements.each do |m|
         fraction = m.from.lerp_to(Vec2[0,0], move_set.progress)
         m.entity.pos_fraction.set!(fraction)
       end
 
-      @game.movement_sets.shift if move_set.progress >= 1.0
+      @state.movement_sets.shift if move_set.progress >= 1.0
     end
 
     !!move_set
@@ -469,7 +534,7 @@ class LevelScene < Naghavi::Scene
 
 end
 
-class EndLevelScene < Naghavi::Scene
+class EndLevelScene < Scene
   def initialize(text, color = 'white', action_text = 'continue', next_level = 1)
     @text = text
     @color = color
@@ -484,20 +549,20 @@ class EndLevelScene < Naghavi::Scene
   end
 
   def startup
-    screen = w.game_size
+    screen = game.game_size
 
-    top = w.add_text(@text, fill: @color)
+    top = game.add_text(@text, fill: @color)
     top.position.eset!(screen.x/2 - top.width/2, screen.y/2)
 
-    bot = w.add_text("Press space to #{@action_text}", fill: @color)
+    bot = game.add_text("Press space to #{@action_text}", fill: @color)
     bot.position.eset!(screen.x/2 - bot.width/2, screen.y/2 + 80)
   end
 end
 
-class IntroScene < Naghavi::Scene
+class IntroScene < Scene
   def startup
-    @background = w.add_sprite(:intro_background)
-    `#{w}.stage.smoothed = false;`
+    @background = game.add_sprite(:intro_background)
+    `#{game}.stage.smoothed = false;`
   end
 
   def button_down(button)
@@ -534,6 +599,6 @@ ASSETS = {
 
 starting_scene = IntroScene.new
 #starting_scene = LevelScene.new(5)
-nag_window = Naghavi::Window.new(starting_scene, ASSETS)
-game = Gremlin::Game.new(size: [13*GRID_SIZE, 10*GRID_SIZE], state: nag_window)
+state = GemmyGame.new(starting_scene, ASSETS)
+game = Gremlin::Game.new(size: [13*GRID_SIZE, 10*GRID_SIZE], state: state)
 `window.game = game`
