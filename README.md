@@ -45,3 +45,5 @@ open http://localhost:8000/
  - Opal API for audio instances.
  - Responsive canvas resizing
  - Refactor loading screen
+ - API for mouse input
+ - API for touch input
