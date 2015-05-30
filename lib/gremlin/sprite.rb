@@ -7,11 +7,8 @@ module Gremlin
     def image_key=(value); `#{self}.loadTexture(#{value})`; end
 
     # TODO: animation API needs refactoring
-    def add_animation(*args);
-      `#{self}.animations.add.apply(#{self}.animations, #{args})`
-    end
-    def play_animation(*args);
-      `#{self}.animations.play.apply(#{self}.animations, #{args})`
+    def play_animation(name)
+      `#{self}.animations.play(#{name})`
     end
   end
 end

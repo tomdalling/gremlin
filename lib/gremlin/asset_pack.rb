@@ -1,24 +1,33 @@
 module Gremlin
-  module AssetPack
-    extend self
+  class AssetPack
 
-    def from_manifest(asset_manifest)
+    def initialize(asset_manifest)
+      @animations = {}
+      @assets = asset_manifest.flat_map do |type, asset_list|
+        asset_list.map do |asset|
+          key, options = Array(asset)
+          hash = { key: key, type: IRREGULAR_TYPES.fetch(type, type) }
+          hash.merge!(send("#{type}_options", key, options || {}))
+          @animations[key] = hash.delete(:_animations) if hash[:_animations]
+          hash
+        end
+      end
+    end
+
+    def phaser_pack_object
       {
+        assets: @assets,
         meta: {
           generated: `Date.now()`,
           version: '1.0',
           app: 'Gremlin',
           url: 'https://github.com/tomdalling/gremlin',
         },
-        assets: asset_manifest.flat_map do |type, asset_list|
-          asset_list.map do |asset|
-            key, options = Array(asset)
-            hash = { key: key, type: IRREGULAR_TYPES.fetch(type, type) }
-            hash.merge!(send("#{type}_options", key, options || {}))
-            hash
-          end
-        end
       }.to_n
+    end
+
+    def animations
+      @animations
     end
 
     def image_options(key, opts)
@@ -99,11 +108,19 @@ module Gremlin
         textureURL: "asset/atlas/#{opts.fetch(:texture_path, key + '.png')}",
         atlasData: opts.fetch(:data, nil),
         format: opts.fetch(:format, 'TEXTURE_ATLAS_JSON_ARRAY'),
+        _animations: opts.fetch(:animations, [ANIM_DEFAULTS]).map{ |a| ANIM_DEFAULTS.merge(a) },
       }
     end
 
     IRREGULAR_TYPES = {
       bitmap_font: 'bitmapFont',
+    }
+
+    ANIM_DEFAULTS = {
+      name: :default,
+      frames: nil,
+      fps: 5,
+      loop: true,
     }
 
   end

@@ -24,6 +24,7 @@ module Gremlin
     def add_sprite(key)
       s = `#{self}.add.sprite(0, 0, #{key})`
       `#{s}.smoothed = #{@smooth_sprites}`
+      _apply_sprite_animations(key, s)
       s
     end
 
@@ -85,8 +86,8 @@ module Gremlin
       end
 
       def phaser_preload
-        pack = Gremlin::AssetPack.from_manifest(assets)
-        `#{self}.load.pack("assets", null, #{pack})`
+        @pack = Gremlin::AssetPack.new(assets)
+        `#{self}.load.pack("assets", null, #{@pack.phaser_pack_object})`
       end
 
       def phaser_load_update
@@ -138,6 +139,12 @@ module Gremlin
         pointer.position_up.set!(pointer.position)
 
         pointer_up(pointer)
+      end
+
+      def _apply_sprite_animations(key, sprite)
+        @pack.animations.fetch(key, []).each do |a|
+          `#{sprite}.animations.add(#{a[:name]}, #{a[:frames].to_n}, #{a[:fps]}, #{a[:loop]})`
+        end
       end
 
       def patch_phaser_methods!

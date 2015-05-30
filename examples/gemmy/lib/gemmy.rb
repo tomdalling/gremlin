@@ -51,7 +51,7 @@ class GemmyGame < Gremlin::Game
 
       atlas: [
         :player,
-        :goal,
+        [:goal, animations: [{ fps: 5 }]],
         :chaser,
         :shooter,
         :teleporter,
@@ -358,8 +358,6 @@ class LevelScene < Scene
       e.sprite.position.eset!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
       e.sprite.pivot.eset!(e.sprite.width/2, e.sprite.height/2)
       e.sprite.scale.eset!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
-
-      e.sprite.add_animation(:default, `null`, e.fps, true)
       e.sprite.play_animation(:default)
     end
 
