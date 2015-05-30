@@ -1,0 +1,57 @@
+{"frames": [
+
+{
+	"filename": "shooter_01.png",
+	"frame": {"x":0,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+},
+{
+	"filename": "shooter_02.png",
+	"frame": {"x":36,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+},
+{
+	"filename": "shooter_03.png",
+	"frame": {"x":72,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+},
+{
+	"filename": "shooter_04.png",
+	"frame": {"x":108,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+},
+{
+	"filename": "shooter_05.png",
+	"frame": {"x":144,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "shooter.png",
+	"format": "RGBA8888",
+	"size": {"w":180,"h":36},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:baaf4c2b38ad76ac2d4aa084d7d8ab3d:892c797a40b4a3d0e274e105d461c813:d19d62a77c0e786d9878eaf230ffbeed$"
+}
+}

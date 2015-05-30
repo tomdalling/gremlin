@@ -1,0 +1,48 @@
+{"frames": [
+
+{
+	"filename": "teleporter_01.png",
+	"frame": {"x":0,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+},
+{
+	"filename": "teleporter_02.png",
+	"frame": {"x":36,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+},
+{
+	"filename": "teleporter_03.png",
+	"frame": {"x":72,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+},
+{
+	"filename": "teleporter_04.png",
+	"frame": {"x":108,"y":0,"w":36,"h":36},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":36},
+	"sourceSize": {"w":36,"h":36},
+	"pivot": {"x":0.444444,"y":0.444444}
+}],
+"meta": {
+	"app": "http://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "teleporter.png",
+	"format": "RGBA8888",
+	"size": {"w":144,"h":36},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:6cbac657eefef35952d568bc9ae47f4e:b1060719d62a7c0af685a67806ed22ee:ce1615396ce7b0a146766d50b319bb81$"
+}
+}

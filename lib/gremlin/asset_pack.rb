@@ -76,7 +76,7 @@ module Gremlin
     def tilemap_options(key, opts)
       {
         url: "asset/tilemap/#{opts.fetch(:path, key + '.csv')}",
-        data: opts.fetch(:data, `null`),
+        data: opts.fetch(:data, nil),
         format: opts.fetch(:format, 'CSV'),
       }
     end
@@ -84,7 +84,7 @@ module Gremlin
     def physics_options(key, opts)
       {
         url: "asset/physics/#{opts.fetch(:path, key + '.json')}",
-        data: opts.fetch(:data, `null`),
+        data: opts.fetch(:data, nil),
         format: opts.fetch(:format, 'LIME_CORONA_JSON'),
       }
     end
@@ -93,27 +93,17 @@ module Gremlin
       raise NotImplementedError, 'Bitmap fonts are not implemented yet'
     end
 
-    def atlas_json_array(key, opts)
-      raise NotImplementedError, 'Atlas is not implemented yet'
-    end
-
-    def atlas_json_hash(key, opts)
-      raise NotImplementedError, 'Atlas is not implemented yet'
-    end
-
-    def atlas_xml(key, opts)
-      raise NotImplementedError, 'Atlas is not implemented yet'
-    end
-
-    def atlas(key, opts)
-      raise NotImplementedError, 'Atlas is not implemented yet'
+    def atlas_options(key, opts)
+      {
+        atlasURL: "asset/atlas/#{opts.fetch(:data_path, key + '.json')}",
+        textureURL: "asset/atlas/#{opts.fetch(:texture_path, key + '.png')}",
+        atlasData: opts.fetch(:data, nil),
+        format: opts.fetch(:format, 'TEXTURE_ATLAS_JSON_ARRAY'),
+      }
     end
 
     IRREGULAR_TYPES = {
       bitmap_font: 'bitmapFont',
-      atlas_json_array: 'atlasJSONArray',
-      atlas_json_hash: 'atlasJSONHash',
-      atlas_xml: 'atlasXML',
     }
 
   end

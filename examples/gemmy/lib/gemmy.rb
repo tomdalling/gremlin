@@ -24,18 +24,7 @@ ORIENTATION_ROTATIONS = {
   west: PI*1.5,
 }
 
-ANIMATIONS_FRAMES = {
-  player: 3,
-  chaser: 3,
-  floor: 4,
-  wall: 4,
-  gems: 2,
-  goal: 3,
-  dirtball: 1,
-  shooter: 5,
-  bullet: 1,
-  teleporter: 4,
-}
+FLOOR_IMAGE_CHOICES = 4
 
 class Scene
   attr_accessor :game
@@ -61,13 +50,16 @@ class GemmyGame < Gremlin::Game
         :intro_background,
         :dirtball,
         :bullet] +
-        (1..3).map{ |i| "player_0#{i}" } +
-        (1..3).map{ |i| "chaser_0#{i}" } +
-        (1..4).map{ |i| "wall_0#{i}" } +
-        (1..3).map{ |i| "goal_0#{i}" } +
-        (1..4).map{ |i| "floor_0#{i}" } +
-        (1..5).map{ |i| "shooter_0#{i}" } +
-        (1..4).map{ |i| "teleporter_0#{i}" },
+        (1..FLOOR_IMAGE_CHOICES).map{ |i| "wall_0#{i}" } +
+        (1..FLOOR_IMAGE_CHOICES).map{ |i| "floor_0#{i}" },
+
+      atlas: [
+        :player,
+        :goal,
+        :chaser,
+        :shooter,
+        :teleporter,
+      ],
 
       text: (1..NUM_LEVELS).map{ |i| "level_#{i.to_s.rjust(2, '0')}" },
 
@@ -155,20 +147,9 @@ module DefStruct
 end
 
 Animation = DefStruct.new {{
-  key_prefix: nil,
-  current_frame: 0,
+  key: nil,
   secs_per_frame: 0.3,
-  secs_elapsed_this_frame: 0,
-}}.reopen do
-  def current_image_key
-    suffix = if ANIMATIONS_FRAMES[key_prefix] > 1
-      '_' + (current_frame+1).to_s.rjust(2, '0')
-    else
-      '' # no suffix for single from "animations"
-    end
-    key_prefix + suffix
-  end
-end
+}}
 
 Entity = DefStruct.new {{
   sprite: nil,
@@ -363,29 +344,28 @@ class LevelScene < Scene
     @state.level.each_cell do |pos, cell|
       case cell.type
       when :player
-        @state.player = Entity.new(pos: pos.dup, animation: Animation.new(key_prefix: :player), sort_order: so(:player))
+        @state.player = Entity.new(pos: pos.dup, animation: Animation.new(key: :player), sort_order: so(:player))
         cell.type = :floor
       when :enemy
-        @state.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(key_prefix: :chaser), sort_order: so(:enemy))
+        @state.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(key: :chaser), sort_order: so(:enemy))
         cell.type = :floor
       when :shooter
-        @state.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(key_prefix: :shooter), sort_order: so(:enemy))
+        @state.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(key: :shooter), sort_order: so(:enemy))
         cell.type = :floor
       when :goal
-        @state.goal = Entity.new(pos: pos.dup, animation: Animation.new(key_prefix: :goal, secs_per_frame: 0.2), sort_order: so(:goal))
+        @state.goal = Entity.new(pos: pos.dup, animation: Animation.new(key: :goal, secs_per_frame: 0.2), sort_order: so(:goal))
         cell.type = :floor
       when :dirtball
-        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(key_prefix: :dirtball), pushable: true, sort_order: so(:dirtball))
+        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(key: :dirtball), pushable: true, sort_order: so(:dirtball))
         cell.type = :floor
       when :teleporter
-        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(key_prefix: :teleporter), teleport_pair: 1, deadly: false, sort_order: so(:teleporter))
+        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(key: :teleporter), teleport_pair: 1, deadly: false, sort_order: so(:teleporter))
         cell.type = :floor
       end
     end
 
     @state.level.each_cell do |cell_pos, cell|
-      num_frames = ANIMATIONS_FRAMES[cell.type]
-      cell.image_frame = rand(1..num_frames)
+      cell.image_frame = rand(1..FLOOR_IMAGE_CHOICES)
       cell.orientation = [:north, :south, :east, :west].sample
 
       cell.sprite = game.add_sprite(cell.type + '_' + cell.image_frame.to_s.rjust(2, '0'))
@@ -398,10 +378,14 @@ class LevelScene < Scene
     all_entities = @state.entities + [@state.player, @state.goal]
 
     all_entities.each do |e|
-      e.sprite = game.add_sprite(e.animation.current_image_key)
+      e.sprite = game.add_sprite(e.animation.key)
       e.sprite.position.eset!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
       e.sprite.pivot.eset!(e.sprite.width/2, e.sprite.height/2)
       e.sprite.scale.eset!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
+
+      e.sprite.add_animation(:default, `null`, 1/e.animation.secs_per_frame, true)
+      e.sprite.play_animation(:default)
+      e.animation = nil
     end
 
     all_entities
@@ -487,7 +471,7 @@ class LevelScene < Scene
       break if try_move(entity, move.x, move.y, move_set)
     end
     ai_results.spawns.each do |entity|
-      entity.sprite = game.add_sprite(entity.animation.current_image_key)
+      entity.sprite = game.add_sprite(entity.animation.key)
       entity.sprite.position.eset!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
       entity.sprite.pivot.eset!(entity.sprite.width/2, entity.sprite.height/2)
       entity.sprite.scale.eset!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
@@ -518,14 +502,15 @@ class LevelScene < Scene
   end
 
   def update
-    update_animation(@state.player)
-    update_animation(@state.goal)
-    @state.entities.each do |entity|
-      update_animation(entity) if entity.animation
-    end
-
     did_move = update_next_movement
-    @state.player.animation.secs_per_frame = did_move ? 0.02 : 0.3
+
+    # TODO: opal api for this?
+    anim_delay = did_move ? 20 : 300
+    anim = `#{@state.player.sprite}.animations.currentAnim`
+    if `#{anim}.delay` != anim_delay
+      `#{anim}.delay = #{anim_delay}`
+      `#{anim}.restart()`
+    end
 
     # TODO: refactor
     # sets every attribute on the sprite
@@ -561,21 +546,6 @@ class LevelScene < Scene
       end
     end
 
-  end
-
-  def update_animation(entity)
-    anim = entity.animation
-    anim.secs_elapsed_this_frame += game.delta_time
-    old_frame = anim.current_frame
-    while anim.secs_elapsed_this_frame >= anim.secs_per_frame
-      anim.secs_elapsed_this_frame -= anim.secs_per_frame
-      anim.current_frame += 1
-      anim.current_frame = 0 if anim.current_frame >= ANIMATIONS_FRAMES[anim.key_prefix]
-    end
-
-    if anim.current_frame != old_frame
-      entity.sprite.image_key = anim.current_image_key
-    end
   end
 
   def update_next_movement
