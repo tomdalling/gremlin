@@ -1,9 +1,11 @@
 require 'gremlin'
 include Gremlin::Keyboard
 
+PI = `Math.PI`
 NUM_LEVELS = 9
 MOVE_INTERVAL = 0.1
 GRID_SIZE = 64
+FLOOR_IMAGE_CHOICES = 4
 CELL_TYPES_BY_CHAR = {
   'x' => :wall,
   ' ' => :floor,
@@ -14,17 +16,12 @@ CELL_TYPES_BY_CHAR = {
   'd' => :dirtball,
   't' => :teleporter,
 }
-
-PI = `Math.PI`
-
 ORIENTATION_ROTATIONS = {
   north: 0,
   east: PI/2,
   south: PI,
   west: PI*1.5,
 }
-
-FLOOR_IMAGE_CHOICES = 4
 
 class Scene
   attr_accessor :game
@@ -41,7 +38,6 @@ end
 class GemmyGame < Gremlin::Game
   def initialize
     @initial_scene = IntroScene.new
-    #@initial_scene = LevelScene.new(5)
   end
 
   def assets
@@ -146,22 +142,15 @@ module DefStruct
   end
 end
 
-Animation = DefStruct.new {{
-  key: nil,
-  secs_per_frame: 0.3,
-}}
-
 Entity = DefStruct.new {{
   sprite: nil,
-  sort_order: 0,
   pos: Vec2[0, 0],
   pos_fraction: Vec2[0, 0],
   ai: nil,
   color: 'white',
   tint: 'white',
   image_key: nil,
-  image_frame: 0,
-  animation: nil,
+  fps: 3,
   alive: true,
   orientation: :north,
   pushable: false,
@@ -235,8 +224,7 @@ Level = DefStruct.new {{
   end
 
   def can_move_to?(x, y)
-    cell = cell_at(x, y)
-    cell.type == :floor
+    cell_at(x, y).type == :floor
   end
 end
 
@@ -289,9 +277,9 @@ class ShooterAi
     if projectile_vel
       shooter.orientation = orientation_for_movement(projectile_vel.x, projectile_vel.y)
       @projectile = Entity.new({
+        image_key: :bullet,
         pos: shooter.pos.dup,
         ai: ProjectileAi.new(projectile_vel),
-        animation: Animation.new(key_prefix: :bullet),
       })
       AiResults.new(spawns: [@projectile])
     else
@@ -321,14 +309,10 @@ class ProjectileAi
 end
 
 class LevelScene < Scene
-  ENTITY_SORT_ORDER = [:dirtball, :enemy, :player]
+  ENTITY_SORT_ORDER = [:dirtball, :chaser, :player]
 
   def initialize(level_number)
     @level_number = level_number
-  end
-
-  def so(type)
-    ENTITY_SORT_ORDER.index(type) || ENTITY_SORT_ORDER.size
   end
 
   def startup
@@ -342,26 +326,18 @@ class LevelScene < Scene
 
     @state.entities ||= []
     @state.level.each_cell do |pos, cell|
-      case cell.type
-      when :player
-        @state.player = Entity.new(pos: pos.dup, animation: Animation.new(key: :player), sort_order: so(:player))
-        cell.type = :floor
-      when :enemy
-        @state.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(key: :chaser), sort_order: so(:enemy))
-        cell.type = :floor
-      when :shooter
-        @state.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(key: :shooter), sort_order: so(:enemy))
-        cell.type = :floor
-      when :goal
-        @state.goal = Entity.new(pos: pos.dup, animation: Animation.new(key: :goal, secs_per_frame: 0.2), sort_order: so(:goal))
-        cell.type = :floor
-      when :dirtball
-        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(key: :dirtball), pushable: true, sort_order: so(:dirtball))
-        cell.type = :floor
-      when :teleporter
-        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(key: :teleporter), teleport_pair: 1, deadly: false, sort_order: so(:teleporter))
-        cell.type = :floor
+      found_entity = begin
+        case cell.type
+        when :player then @state.player = Entity.new(pos: pos.dup, image_key: :player)
+        when :enemy then @state.entities << Entity.new(pos: pos.dup, image_key: :chaser, ai: ChaserAi.new)
+        when :shooter then @state.entities << Entity.new(pos: pos.dup, image_key: :shooter, ai: ShooterAi.new)
+        when :goal then @state.goal = Entity.new(pos: pos.dup, image_key: :goal, fps: 5)
+        when :dirtball then @state.entities << Entity.new(pos: pos.dup, image_key: :dirtball, pushable: true)
+        when :teleporter then @state.entities << Entity.new(pos: pos.dup, image_key: :teleporter, teleport_pair: 1, deadly: false)
+        else false
+        end
       end
+      cell.type = :floor if found_entity
     end
 
     @state.level.each_cell do |cell_pos, cell|
@@ -378,18 +354,17 @@ class LevelScene < Scene
     all_entities = @state.entities + [@state.player, @state.goal]
 
     all_entities.each do |e|
-      e.sprite = game.add_sprite(e.animation.key)
+      e.sprite = game.add_sprite(e.image_key)
       e.sprite.position.eset!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
       e.sprite.pivot.eset!(e.sprite.width/2, e.sprite.height/2)
       e.sprite.scale.eset!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
 
-      e.sprite.add_animation(:default, `null`, 1/e.animation.secs_per_frame, true)
+      e.sprite.add_animation(:default, `null`, e.fps, true)
       e.sprite.play_animation(:default)
-      e.animation = nil
     end
 
     all_entities
-      .sort_by(&:sort_order)
+      .sort_by{ |e| ENTITY_SORT_ORDER.index(e.image_key) || ENTITY_SORT_ORDER.size }
       .reverse
       .each{ |e| e.sprite.bring_to_top }
 
@@ -452,15 +427,13 @@ class LevelScene < Scene
     @state.player.just_teleported = false if did_move
 
     # explicit idx looping necessary because AI can spawn new entities during iteration
-    idx = 0
-    while idx < @state.entities.size
+    idx = -1
+    while (idx += 1) < @state.entities.size
       enemy = @state.entities[idx]
       if enemy.ai
         ai_results = enemy.ai.think(enemy, @state)
         apply_ai(enemy, ai_results, move_set) if ai_results
       end
-
-      idx += 1
     end
 
     @state.movement_sets << move_set if move_set.movements.size > 0
@@ -471,7 +444,7 @@ class LevelScene < Scene
       break if try_move(entity, move.x, move.y, move_set)
     end
     ai_results.spawns.each do |entity|
-      entity.sprite = game.add_sprite(entity.animation.key)
+      entity.sprite = game.add_sprite(entity.image_key)
       entity.sprite.position.eset!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
       entity.sprite.pivot.eset!(entity.sprite.width/2, entity.sprite.height/2)
       entity.sprite.scale.eset!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
@@ -483,8 +456,8 @@ class LevelScene < Scene
   def try_move(entity, dx, dy, move_set)
     x = entity.pos.x + dx
     y = entity.pos.y + dy
-    return if y < 0 || y >= @state.level.row_count
-    return if x < 0 || x >= @state.level.column_count
+    return false if y < 0 || y >= @state.level.row_count
+    return false if x < 0 || x >= @state.level.column_count
 
     if @state.level.can_move_to?(x, y)
       existing = @state.entities.find { |e| e.pushable && e.pos.eeql?(x, y) }
@@ -538,14 +511,9 @@ class LevelScene < Scene
     end
 
     @state.entities.select! do |e|
-      if e.alive
-        true
-      else
-        e.sprite.destroy!
-        false
-      end
+      e.sprite.destroy! unless e.alive
+      e.alive
     end
-
   end
 
   def update_next_movement
