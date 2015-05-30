@@ -24,14 +24,13 @@ open http://localhost:8000/
 ## TODO
 
 Gremlin:
- - Refactor asset loading so it matches Phaser loading (need to account for
-   spritesheets/atlases)
  - Opal API for audio instances.
  - Rethink the API for creating game objects (text, images, sprites, audio, etc).
    Who should be responsible for creation?
  - Investigate whether played sounds need to be `destroy`'d, or if they can just be GC'd
  - Responsive canvas resizing
  - Refactor loading screen
+ - Do animation API properly
  - Opalize Phaser.Tween
  - Opalize Phaser.Group
  - Opalize Phaser.Geometry?
@@ -39,9 +38,7 @@ Gremlin:
 Gemmy:
  - "You win" screen at end
  - "Press any key to begin" on intro
- - Do ENTITY_SORT_ORDER better
- - Try remove NUM_LEVELS and just check text cache instead
- - Rip out custom animation and replace with Phaser animation
+ - Less depressing music
 
 [Opal]: http://opalrb.org/
 [Phaser]: http://phaser.io/
