@@ -59,27 +59,24 @@ class GemmyGame < Gremlin::Game
    {
       image: [
         :intro_background,
-        [:dirtball, 1],
-        [:bullet, 1],
-        [:player, 3],
-        [:chaser, 3],
-        [:wall, 4],
-        [:goal, 3],
-        [:floor, 4],
-        [:shooter, 5],
-        [:teleporter, 4],
-      ],
+        :dirtball,
+        :bullet] +
+        (1..3).map{ |i| "player_0#{i}" } +
+        (1..3).map{ |i| "chaser_0#{i}" } +
+        (1..4).map{ |i| "wall_0#{i}" } +
+        (1..3).map{ |i| "goal_0#{i}" } +
+        (1..4).map{ |i| "floor_0#{i}" } +
+        (1..5).map{ |i| "shooter_0#{i}" } +
+        (1..4).map{ |i| "teleporter_0#{i}" },
 
-      text: [
-        [:level, NUM_LEVELS],
-      ],
+      text: (1..NUM_LEVELS).map{ |i| "level_#{i.to_s.rjust(2, '0')}" },
 
       audio: [
-        :lose,
-        :move,
-        :start,
-        :win,
-        [:music, 'mp3'],
+        :music,
+        [:lose, path: 'lose.wav'],
+        [:move, path: 'move.wav'],
+        [:start, path: 'start.wav'],
+        [:win, path: 'win.wav'],
       ],
     }
   end
@@ -158,11 +155,20 @@ module DefStruct
 end
 
 Animation = DefStruct.new {{
-  image_key: nil,
+  key_prefix: nil,
   current_frame: 0,
   secs_per_frame: 0.3,
   secs_elapsed_this_frame: 0,
-}}
+}}.reopen do
+  def current_image_key
+    suffix = if ANIMATIONS_FRAMES[key_prefix] > 1
+      '_' + (current_frame+1).to_s.rjust(2, '0')
+    else
+      '' # no suffix for single from "animations"
+    end
+    key_prefix + suffix
+  end
+end
 
 Entity = DefStruct.new {{
   sprite: nil,
@@ -304,7 +310,7 @@ class ShooterAi
       @projectile = Entity.new({
         pos: shooter.pos.dup,
         ai: ProjectileAi.new(projectile_vel),
-        animation: Animation.new(image_key: :bullet),
+        animation: Animation.new(key_prefix: :bullet),
       })
       AiResults.new(spawns: [@projectile])
     else
@@ -349,7 +355,7 @@ class LevelScene < Scene
 
     #TODO: show final "winner" screen when no more levels available
     # just loops back to level 1 at the moment
-    level_text = game.get_text("level#{@level_number}")
+    level_text = game.get_text("level_#{(@level_number + 1).to_s.rjust(2, '0')}")
 
     @state = GameState.new(level: Level.from_text(level_text))
 
@@ -357,32 +363,32 @@ class LevelScene < Scene
     @state.level.each_cell do |pos, cell|
       case cell.type
       when :player
-        @state.player = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :player), sort_order: so(:player))
+        @state.player = Entity.new(pos: pos.dup, animation: Animation.new(key_prefix: :player), sort_order: so(:player))
         cell.type = :floor
       when :enemy
-        @state.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(image_key: :chaser), sort_order: so(:enemy))
+        @state.entities << Entity.new(pos: pos.dup, ai: ChaserAi.new, animation: Animation.new(key_prefix: :chaser), sort_order: so(:enemy))
         cell.type = :floor
       when :shooter
-        @state.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(image_key: :shooter), sort_order: so(:enemy))
+        @state.entities << Entity.new(pos: pos.dup, ai: ShooterAi.new, animation: Animation.new(key_prefix: :shooter), sort_order: so(:enemy))
         cell.type = :floor
       when :goal
-        @state.goal = Entity.new(pos: pos.dup, animation: Animation.new(image_key: :goal, secs_per_frame: 0.2), sort_order: so(:goal))
+        @state.goal = Entity.new(pos: pos.dup, animation: Animation.new(key_prefix: :goal, secs_per_frame: 0.2), sort_order: so(:goal))
         cell.type = :floor
       when :dirtball
-        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :dirtball), pushable: true, sort_order: so(:dirtball))
+        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(key_prefix: :dirtball), pushable: true, sort_order: so(:dirtball))
         cell.type = :floor
       when :teleporter
-        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(image_key: :teleporter), teleport_pair: 1, deadly: false, sort_order: so(:teleporter))
+        @state.entities << Entity.new(pos: pos.dup, animation: Animation.new(key_prefix: :teleporter), teleport_pair: 1, deadly: false, sort_order: so(:teleporter))
         cell.type = :floor
       end
     end
 
     @state.level.each_cell do |cell_pos, cell|
       num_frames = ANIMATIONS_FRAMES[cell.type]
-      cell.image_frame = rand(0...num_frames)
+      cell.image_frame = rand(1..num_frames)
       cell.orientation = [:north, :south, :east, :west].sample
 
-      cell.sprite = game.add_sprite(cell.type + cell.image_frame.to_s)
+      cell.sprite = game.add_sprite(cell.type + '_' + cell.image_frame.to_s.rjust(2, '0'))
       cell.sprite.position.eset!(cell_pos.x * GRID_SIZE + GRID_SIZE/2, cell_pos.y * GRID_SIZE + GRID_SIZE/2)
       cell.sprite.pivot.eset!(cell.sprite.width / 2, cell.sprite.height / 2)
       cell.sprite.scale.eset!(GRID_SIZE/cell.sprite.width, GRID_SIZE/cell.sprite.height)
@@ -392,7 +398,7 @@ class LevelScene < Scene
     all_entities = @state.entities + [@state.player, @state.goal]
 
     all_entities.each do |e|
-      e.sprite = game.add_sprite(e.animation.image_key + e.animation.current_frame.to_s)
+      e.sprite = game.add_sprite(e.animation.current_image_key)
       e.sprite.position.eset!(e.pos.x * GRID_SIZE + GRID_SIZE/2, e.pos.y * GRID_SIZE + GRID_SIZE/2)
       e.sprite.pivot.eset!(e.sprite.width/2, e.sprite.height/2)
       e.sprite.scale.eset!(GRID_SIZE/e.sprite.width, GRID_SIZE/e.sprite.height)
@@ -481,7 +487,7 @@ class LevelScene < Scene
       break if try_move(entity, move.x, move.y, move_set)
     end
     ai_results.spawns.each do |entity|
-      entity.sprite = game.add_sprite(entity.animation.image_key + entity.animation.current_frame.to_s)
+      entity.sprite = game.add_sprite(entity.animation.current_image_key)
       entity.sprite.position.eset!(entity.pos.x*GRID_SIZE + GRID_SIZE/2, entity.pos.y*GRID_SIZE + GRID_SIZE/2)
       entity.sprite.pivot.eset!(entity.sprite.width/2, entity.sprite.height/2)
       entity.sprite.scale.eset!(GRID_SIZE / entity.sprite.width, GRID_SIZE / entity.sprite.height )
@@ -564,11 +570,11 @@ class LevelScene < Scene
     while anim.secs_elapsed_this_frame >= anim.secs_per_frame
       anim.secs_elapsed_this_frame -= anim.secs_per_frame
       anim.current_frame += 1
-      anim.current_frame = 0 if anim.current_frame >= ANIMATIONS_FRAMES[anim.image_key]
+      anim.current_frame = 0 if anim.current_frame >= ANIMATIONS_FRAMES[anim.key_prefix]
     end
 
     if anim.current_frame != old_frame
-      entity.sprite.image_key = anim.image_key + anim.current_frame.to_s
+      entity.sprite.image_key = anim.current_image_key
     end
   end
 

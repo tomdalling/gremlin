@@ -26,17 +26,15 @@ open http://localhost:8000/
 Gremlin:
  - Refactor asset loading so it matches Phaser loading (need to account for
    spritesheets/atlases)
- - Opalize Phaser.Group
- - Opalize Phaser.Tween
- - Opalize Phaser.Geometry?
- - Opal API for mouse input
- - Opal API for touch input
  - Opal API for audio instances.
  - Rethink the API for creating game objects (text, images, sprites, audio, etc).
    Who should be responsible for creation?
  - Investigate whether played sounds need to be `destroy`'d, or if they can just be GC'd
  - Responsive canvas resizing
  - Refactor loading screen
+ - Opalize Phaser.Tween
+ - Opalize Phaser.Group
+ - Opalize Phaser.Geometry?
 
 Gemmy:
  - "You win" screen at end
