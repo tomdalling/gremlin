@@ -47,6 +47,10 @@ module Gremlin
       `!!#{self}.input.keyboard.isDown(#{key})`
     end
 
+    def pointer_down?
+      `#{self}.input.mousePointer`.down? || `#{self}.input.pointers`.any?(&:down?)
+    end
+
     def canvas_size
       Vec2[`#{self}.game.width`, `#{self}.game.height`]
     end

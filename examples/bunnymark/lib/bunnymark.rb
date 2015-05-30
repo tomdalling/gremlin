@@ -49,7 +49,7 @@ class Bunnymark < Gremlin::Game
       end
     end
 
-    if key_down?(Gremlin::Keyboard::KEY_SPACEBAR)
+    if key_down?(Gremlin::Keyboard::KEY_SPACEBAR) || pointer_down?
       5.times do
         t = Bunny.new
         t.velocity = Gremlin::Vec2[rand(-200..200), 0]

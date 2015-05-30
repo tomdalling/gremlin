@@ -13957,11 +13957,17 @@ Opal.modules["gremlin/pointer"] = function(Opal) {
         return self.positionDown;
       };
 
-      return (def.$position_up = function() {
+      def.$position_up = function() {
         var self = this;
 
         return self.positionUp;
-      }, nil) && 'position_up';
+      };
+
+      return (def['$down?'] = function() {
+        var self = this;
+
+        return self.isDown;
+      }, nil) && 'down?';
     })(self, Phaser.Pointer)
   })(self)
 };
@@ -14094,7 +14100,7 @@ Opal.modules["gremlin/game"] = function(Opal) {
   Opal.dynamic_require_severity = "error";
   var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $module = Opal.module, $klass = Opal.klass, $hash2 = Opal.hash2;
 
-  Opal.add_stubs(['$raise', '$to_n', '$[]', '$protected', '$attr_accessor', '$init', '$from_manifest', '$assets', '$add_text', '$eset!', '$position', '$scale', '$*', '$destroy!', '$create', '$render', '$update', '$paused', '$pause_update', '$resize', '$shutdown', '$private', '$key_down', '$key_up', '$pointer_down', '$set!', '$position_up', '$pointer_up', '$each']);
+  Opal.add_stubs(['$raise', '$to_n', '$down?', '$any?', '$to_proc', '$[]', '$protected', '$attr_accessor', '$init', '$from_manifest', '$assets', '$add_text', '$eset!', '$position', '$scale', '$*', '$destroy!', '$create', '$render', '$update', '$paused', '$pause_update', '$resize', '$shutdown', '$private', '$key_down', '$key_up', '$pointer_down', '$set!', '$position_up', '$pointer_up', '$each']);
   return (function($base) {
     var self = $module($base, 'Gremlin');
 
@@ -14224,6 +14230,12 @@ Opal.modules["gremlin/game"] = function(Opal) {
         var self = this;
 
         return !!self.input.keyboard.isDown(key);
+      };
+
+      def['$pointer_down?'] = function() {
+        var $a, $b, $c, self = this;
+
+        return ((($a = (self.input.mousePointer)['$down?']()) !== false && $a !== nil) ? $a : ($b = ($c = (self.input.pointers))['$any?'], $b.$$p = "down?".$to_proc(), $b).call($c));
       };
 
       def.$canvas_size = function() {
@@ -14563,7 +14575,7 @@ Opal.modules["gremlin"] = function(Opal) {
   Opal.dynamic_require_severity = "error";
   var self = Opal.top, $scope = Opal, nil = Opal.nil, $breaker = Opal.breaker, $slice = Opal.slice, $klass = Opal.klass, $hash2 = Opal.hash2, $range = Opal.range;
 
-  Opal.add_stubs(['$require', '$new', '$enabled_advanced_timing!', '$add_text', '$eset!', '$position', '$delta_time', '$canvas_size', '$each', '$velocity', '$sprite', '$size', '$eadd!', '$*', '$add!', '$+', '$y', '$>', '$y=', '$-', '$-@', '$<', '$x', '$x=', '$key_down?', '$times', '$velocity=', '$[]', '$rand', '$sprite=', '$add_sprite', '$<<', '$bring_to_top', '$text=', '$average_fps', '$run_game']);
+  Opal.add_stubs(['$require', '$new', '$enabled_advanced_timing!', '$add_text', '$eset!', '$position', '$delta_time', '$canvas_size', '$each', '$velocity', '$sprite', '$size', '$eadd!', '$*', '$add!', '$+', '$y', '$>', '$y=', '$-', '$-@', '$<', '$x', '$x=', '$key_down?', '$pointer_down?', '$times', '$velocity=', '$[]', '$rand', '$sprite=', '$add_sprite', '$<<', '$bring_to_top', '$text=', '$average_fps', '$run_game']);
   self.$require("gremlin");
   (function($base, $super) {
     function $Bunnymark(){};
@@ -14617,7 +14629,7 @@ if (t == null) t = nil;
           } else {
           return nil
         };}, TMP_1.$$s = self, TMP_1), $a).call($b);
-      if ((($a = self['$key_down?']((((($scope.get('Gremlin')).$$scope.get('Keyboard'))).$$scope.get('KEY_SPACEBAR')))) !== nil && (!$a.$$is_boolean || $a == true))) {
+      if ((($a = ((($c = self['$key_down?']((((($scope.get('Gremlin')).$$scope.get('Keyboard'))).$$scope.get('KEY_SPACEBAR')))) !== false && $c !== nil) ? $c : self['$pointer_down?']())) !== nil && (!$a.$$is_boolean || $a == true))) {
         ($a = ($c = (5)).$times, $a.$$p = (TMP_2 = function(){var self = TMP_2.$$s || this, $a, $b;
           if (self.bunnies == null) self.bunnies = nil;
 

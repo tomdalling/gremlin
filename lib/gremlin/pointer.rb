@@ -4,5 +4,6 @@ module Gremlin
     def position; `#{self}.position`; end
     def position_down; `#{self}.positionDown`; end
     def position_up; `#{self}.positionUp`; end
+    def down?; `#{self}.isDown`; end
   end
 end
